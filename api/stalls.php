@@ -1,9 +1,11 @@
 <?php
 header('Content-Type: application/json');
 
-require_once __DIR__ . '/../includes/db.php';
 
-function seed_stalls_if_empty(PDO $pdo): void {
+require_once __DIR__ . '/../services/StallsService.php';
+
+function seed_stalls_if_empty(PDO $pdo): void
+{
     $count = (int) $pdo->query('SELECT COUNT(*) FROM stalls')->fetchColumn();
     if ($count > 0) {
         return;
@@ -34,12 +36,14 @@ function seed_stalls_if_empty(PDO $pdo): void {
         // Fetch category ids
         $catStmt = $pdo->query('SELECT id, name FROM categories WHERE id IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)');
         $nameToId = [];
-        foreach ($catStmt->fetchAll() as $row) { $nameToId[$row['name']] = (int)$row['id']; }
+        foreach ($catStmt->fetchAll() as $row) {
+            $nameToId[$row['name']] = (int) $row['id'];
+        }
 
         $stmt = $pdo->prepare('INSERT INTO stalls (id, status, price, category_id) VALUES (:id, :status, :price, :category_id)');
 
         // Sections P-T, 1..14
-        foreach (['P','Q','R','S','T'] as $section) {
+        foreach (['P', 'Q', 'R', 'S', 'T'] as $section) {
             for ($i = 1; $i <= 14; $i++) {
                 $id = $section . $i;
                 $stmt->execute([':id' => $id, ':status' => 'available', ':price' => $standardPrice, ':category_id' => null]);
@@ -75,9 +79,8 @@ function seed_stalls_if_empty(PDO $pdo): void {
 try {
     seed_stalls_if_empty($pdo);
 
-    $stmt = $pdo->query('SELECT id, status, price, category_id, organization, booking_ref FROM stalls ORDER BY id');
-    $stalls = $stmt->fetchAll();
-
+    $service = new StallsService($pdo);
+    $stalls = $service->getAllStalls();
     echo json_encode(['stalls' => $stalls]);
 } catch (Throwable $e) {
     http_response_code(500);

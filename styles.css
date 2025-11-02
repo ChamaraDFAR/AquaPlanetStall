@@ -1,0 +1,390 @@
+/* styles.css - Custom styles for Exhibition Stall Booking */
+/* Extracted from index.php for maintainability */
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	min-height: 100vh;
+}
+
+/* Header Styling */
+header h1 {
+	color: #1e293b;
+	font-size: 2rem;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	margin-bottom: 0.5rem;
+}
+header p {
+	color: #64748b;
+	font-size: 1rem;
+}
+/* Legend Styling */
+.legend-box {
+	width: 1.25rem;
+	height: 1.25rem;
+	border-radius: 0.375rem;
+	border: 2px solid;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.legend-item {
+	padding: 0.5rem 0.75rem;
+	background: rgba(255, 255, 255, 0.7);
+	border-radius: 0.5rem;
+	backdrop-filter: blur(10px);
+	transition: all 0.2s ease;
+}
+.legend-item:hover {
+	background: rgba(255, 255, 255, 0.9);
+	transform: translateY(-1px);
+}
+/* Road */
+.road {
+	height: 1rem;
+	background: linear-gradient(90deg, #475569 0%, #334155 100%);
+	border-radius: 0.5rem;
+	position: relative;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.road:after {
+	content: "";
+	position: absolute;
+	inset: 0 0.5rem;
+	top: 50%;
+	height: 0;
+	border-top: 3px dashed rgba(255, 255, 255, 0.8);
+	transform: translateY(-50%);
+}
+/* Stalls */
+.stall-box {
+	min-width: 3.2rem;
+	width: 100%;
+	max-width: 100%;
+	height: 2.6rem;
+	font-weight: 700;
+	font-size: 0.8rem;
+	border: 2px solid;
+	border-radius: 0.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #fff;
+	color: #334155;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	user-select: none;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	position: relative;
+	flex-shrink: 0;
+	padding: 0 0.25rem;
+	box-sizing: border-box;
+}
+.stall-available {
+	cursor: pointer;
+	background: #fff;
+	border-color: #cbd5e1;
+}
+.stall-available:hover {
+	background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+	border-color: #60a5fa;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(96, 165, 250, 0.2);
+}
+.stall-available:active {
+	transform: translateY(0);
+}
+.stall-available:focus {
+	outline: none;
+}
+.stall-available:focus-visible {
+	outline: 3px solid #93c5fd;
+	outline-offset: 2px;
+}
+.stall-selected-dfar {
+	background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+	color: #fff;
+	border-color: #0284c7;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+}
+.stall-selected-dfar:hover {
+	box-shadow: 0 6px 16px rgba(2, 132, 199, 0.5);
+	transform: translateY(-3px);
+}
+.stall-selected-naqda {
+	background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+	color: #fff;
+	border-color: #4f46e5;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+}
+.stall-selected-naqda:hover {
+	box-shadow: 0 6px 16px rgba(79, 70, 229, 0.5);
+	transform: translateY(-3px);
+}
+.stall-booked {
+	background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+	color: #94a3b8;
+	border-color: #cbd5e1;
+	text-decoration: line-through;
+	cursor: not-allowed;
+	box-shadow: none;
+	opacity: 0.6;
+}
+.stall-large {
+	width: 3.6rem;
+	height: 2.9rem;
+	font-size: 0.9rem;
+	border-width: 2px;
+}
+/* Grids */
+.grid-cols-5,
+.grid-cols-7,
+.grid-cols-10,
+.grid-cols-12,
+.grid-cols-14,
+.grid-cols-15 {
+	gap: 0.5rem;
+	display: grid;
+	width: 100%;
+}
+.grid-cols-15.stretch {
+	gap: 0.6rem;
+}
+.grid-cols-5 {
+	grid-template-columns: repeat(5, minmax(3rem, 1fr));
+	gap: 0.6rem;
+}
+.grid-cols-10 {
+	grid-template-columns: repeat(10, minmax(3.2rem, 1fr));
+}
+.grid-cols-12 {
+	grid-template-columns: repeat(12, minmax(3.2rem, 1fr));
+}
+/* Full width container for V stalls */
+.v-stalls-container {
+	width: 100%;
+	background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+	border: 2px solid #e2e8f0;
+	border-radius: 0.75rem;
+	padding: 1.5rem;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.grid-cols-7 {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(3rem, 1fr));
+	gap: 0.6rem;
+}
+.grid-cols-14 {
+	display: grid;
+	grid-template-columns: repeat(14, minmax(2.5rem, 1fr));
+	gap: 0.5rem;
+}
+.grid-cols-15 {
+	display: grid;
+	grid-template-columns: repeat(15, minmax(2.8rem, 1fr));
+	gap: 0.75rem;
+	margin-bottom: 0.75rem;
+}
+.grid-cols-14 {
+	display: grid;
+	grid-template-columns: repeat(14, minmax(2.8rem, 1fr));
+	gap: 0.75rem;
+	margin-bottom: 0.75rem;
+}
+.grid-cols-15 .stall-box,
+.grid-cols-14 .stall-box {
+	min-width: 2.8rem;
+	height: 2.4rem;
+	font-size: 0.85rem;
+}
+/* Special grid for U stalls */
+.grid-cols-5 {
+	grid-template-columns: repeat(5, minmax(3rem, 1fr));
+	margin: 0 auto;
+	width: fit-content;
+}
+/* Center U16-U20 row (now first row) */
+#food-stalls .grid-cols-5 {
+	max-width: 33%;
+	margin: 0 auto;
+	margin-bottom: 1rem;
+}
+/* Section Labels */
+.section-label {
+	width: 2.5rem;
+	text-align: center;
+	font-weight: 800;
+	font-size: 1.75rem;
+	color: #475569;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+	letter-spacing: 0.05em;
+}
+.section-header {
+	background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+	color: #fff;
+	padding: 0.75rem 1rem;
+	border-radius: 0.5rem;
+	font-weight: 700;
+	font-size: 0.875rem;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	margin-bottom: 0.75rem;
+}
+/* Cards */
+.card-soft {
+	border: 0;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+	border-radius: 1rem;
+	background: #fff;
+	overflow: hidden;
+}
+.card-soft .card-body {
+	padding: 1.5rem;
+}
+/* Badge Panel */
+.badge-panel {
+	border: 2px solid #cbd5e1;
+	border-radius: 0.625rem;
+	padding: 0.75rem 1rem;
+	background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+	font-weight: 700;
+	color: #1e293b;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	font-size: 0.875rem;
+}
+/* Vertical Label */
+.vert-label {
+	writing-mode: vertical-rl;
+	transform: rotate(180deg);
+	letter-spacing: 0.1em;
+	color: #475569;
+	font-weight: 700;
+	font-size: 0.875rem;
+	padding: 0.5rem;
+	background: rgba(255, 255, 255, 0.5);
+	border-radius: 0.5rem;
+}
+/* Selection Panel */
+#selection-list {
+	scrollbar-width: thin;
+	scrollbar-color: #cbd5e1 transparent;
+}
+#selection-list::-webkit-scrollbar {
+	width: 6px;
+}
+#selection-list::-webkit-scrollbar-track {
+	background: transparent;
+}
+#selection-list::-webkit-scrollbar-thumb {
+	background: #cbd5e1;
+	border-radius: 3px;
+}
+/* Buttons */
+.btn {
+	border-radius: 0.5rem;
+	font-weight: 600;
+	padding: 0.625rem 1.25rem;
+	transition: all 0.2s ease;
+}
+.btn-success {
+	background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+	border: none;
+	box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+.btn-success:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+.btn-success:disabled {
+	background: #e5e7eb;
+	color: #9ca3af;
+	box-shadow: none;
+	transform: none;
+}
+/* Modal Improvements */
+.modal-content {
+	border-radius: 1rem;
+	border: none;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+.modal-header {
+	border-bottom: 1px solid #e5e7eb;
+	padding: 1.25rem 1.5rem;
+}
+.modal-body {
+	padding: 1.5rem;
+}
+.modal-footer {
+	border-top: 1px solid #e5e7eb;
+	padding: 1.25rem 1.5rem;
+}
+/* Food Stalls Section */
+#map-area .bg-light {
+	background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+	border: 2px solid #e2e8f0;
+	border-radius: 0.75rem;
+	padding: 1.25rem;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	overflow: hidden;
+}
+/* Prevent grid overflow */
+.grid-u-stalls,
+.grid-cols-5,
+.grid-cols-7,
+.grid-cols-14,
+.grid-cols-15 {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	overflow: hidden;
+}
+/* Ensure map area doesn't overflow */
+#map-area {
+	width: 100%;
+	max-width: 100%;
+	overflow-x: auto;
+}
+#left-column,
+#right-column {
+	min-width: 0;
+	flex-shrink: 1;
+}
+/* Responsive */
+@media (max-width: 1200px) {
+	.grid-u-stalls {
+		grid-template-columns: repeat(8, minmax(3rem, 1fr));
+	}
+}
+@media (max-width: 768px) {
+	.grid-cols-15,
+	.grid-cols-14 {
+		grid-template-columns: repeat(auto-fit, minmax(2.5rem, 1fr));
+	}
+	.grid-u-stalls {
+		grid-template-columns: repeat(5, minmax(3rem, 1fr));
+	}
+	.stall-box {
+		min-width: 3rem;
+		font-size: 0.75rem;
+	}
+	.stall-large {
+		min-width: 3.2rem;
+	}
+	header h1 {
+		font-size: 1.5rem;
+	}
+	.section-label {
+		width: 2rem;
+		font-size: 1.5rem;
+	}
+}
