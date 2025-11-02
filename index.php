@@ -173,9 +173,13 @@
     /* Grids */
     .grid-cols-5,
     .grid-cols-7,
+    .grid-cols-10,
+    .grid-cols-12,
     .grid-cols-14,
     .grid-cols-15 {
       gap: 0.5rem;
+      display: grid;
+      width: 100%;
     }
 
     .grid-cols-15.stretch {
@@ -183,9 +187,26 @@
     }
 
     .grid-cols-5 {
-      display: grid;
       grid-template-columns: repeat(5, minmax(3rem, 1fr));
       gap: 0.6rem;
+    }
+
+    .grid-cols-10 {
+      grid-template-columns: repeat(10, minmax(3.2rem, 1fr));
+    }
+
+    .grid-cols-12 {
+      grid-template-columns: repeat(12, minmax(3.2rem, 1fr));
+    }
+
+    /* Full width container for V stalls */
+    .v-stalls-container {
+      width: 100%;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 2px solid #e2e8f0;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
     .grid-cols-7 {
@@ -202,8 +223,23 @@
 
     .grid-cols-15 {
       display: grid;
-      grid-template-columns: repeat(15, minmax(2.5rem, 1fr));
-      gap: 0.5rem;
+      grid-template-columns: repeat(15, minmax(2.8rem, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .grid-cols-14 {
+      display: grid;
+      grid-template-columns: repeat(14, minmax(2.8rem, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .grid-cols-15 .stall-box,
+    .grid-cols-14 .stall-box {
+      min-width: 2.8rem;
+      height: 2.4rem;
+      font-size: 0.85rem;
     }
 
     /* Special grid for U stalls to prevent overlap */
@@ -453,13 +489,15 @@
 
             <div class="road mb-3"></div>
 
-            <div class="d-flex flex-column flex-md-row gap-4" id="map-area">
+            <div class="d-flex flex-column gap-4" id="map-area">
+              <!-- Left side stalls -->
               <div class="d-flex align-items-start gap-3">
                 <div class="vert-label d-none d-lg-block">FISHERIES AND EXPORT RELATED STALLS</div>
-                <div class="d-flex flex-column gap-3" id="left-column"></div>
+                <div class="d-flex flex-column gap-3 flex-grow-1" id="left-column"></div>
               </div>
-              <!-- Removed decorative entrance/security column -->
-              <div class="d-flex flex-column flex-lg-row gap-4 flex-grow-1" id="right-column"></div>
+
+              <!-- Full width V stalls section -->
+              <div class="w-100" id="right-column"></div>
             </div>
 
           </div>
@@ -673,6 +711,68 @@
       const left = document.getElementById('left-column'); const right = document.getElementById('right-column');
       left.innerHTML = ''; right.innerHTML = '';
 
+      // Helper function to create V stalls in proper order
+      function createVStallsSection() {
+        const container = document.createElement('div');
+        container.className = 'd-flex flex-column gap-4';
+        container.style.width = '100%';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'section-header text-center';
+        header.style.fontSize = '1.1rem';
+        header.textContent = 'AQUACULTURE STALLS';
+        container.appendChild(header);
+
+        // Stalls container
+        const stallsContainer = document.createElement('div');
+        stallsContainer.className = 'v-stalls-container';        // Sort stalls numerically
+        const vStalls = getByPrefix('V').sort((a, b) => {
+          return parseInt(a.id.substring(1)) - parseInt(b.id.substring(1));
+        });
+
+        // Top row (V78-V89)
+        const topRow = document.createElement('div');
+        topRow.className = 'grid-cols-12 mb-3';
+        for (let i = 78; i <= 89; i++) {
+          const stall = vStalls.find(s => parseInt(s.id.substring(1)) === i);
+          if (stall) topRow.appendChild(createStallButton(stall));
+        }
+        stallsContainer.appendChild(topRow);
+
+        // Main grid (10 columns)
+        const mainGrid = document.createElement('div');
+        mainGrid.className = 'grid-cols-10';
+        mainGrid.style.gap = '0.5rem';
+
+        // Define rows with exact stall numbers
+        const rowNumbers = [
+          [64, 65, 66, 67, 68, 69, 70, 71, 72, 73],
+          [50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
+          [37, 38, 39, 40, 41, 42, 43, 44, 45, 46],
+          [23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
+          [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        ];
+
+        rowNumbers.forEach(row => {
+          row.forEach(num => {
+            const stall = vStalls.find(s => parseInt(s.id.substring(1)) === num);
+            if (stall) mainGrid.appendChild(createStallButton(stall));
+          });
+        });
+
+        stallsContainer.appendChild(mainGrid);
+        container.appendChild(stallsContainer);
+
+        // Main stage
+        const stage = document.createElement('div');
+        stage.className = 'badge-panel fw-bold text-center mt-2';
+        stage.textContent = 'MAIN STAGE';
+        container.appendChild(stage);
+
+        return container;
+      }
+
       // Sections P-Q-R-S-T
       ;['P', 'Q', 'R', 'S', 'T'].forEach(section => {
         const wrap = document.createElement('div'); wrap.className = 'd-flex align-items-center gap-3 mb-3';
@@ -707,20 +807,61 @@
       foodWrap.appendChild(spacer); foodWrap.appendChild(area); left.appendChild(foodWrap);
 
       // Right columns (Aquaculture stalls - V)
-      const rightColA = document.createElement('div'); rightColA.className = 'd-flex flex-column align-items-center gap-3 flex-grow-1';
-      rightColA.style.minWidth = '0';
-      const mTop = document.createElement('div'); mTop.className = 'grid-cols-14'; mTop.style.width = '100%';
-      getByPrefix('V').slice(75, 89).forEach(s => mTop.appendChild(createStallButton(s)));
-      const mGrid = document.createElement('div'); mGrid.className = 'grid-cols-15 stretch'; mGrid.style.width = '100%';
-      const m = getByPrefix('V');
-      m.slice(60, 75).forEach(s => mGrid.appendChild(createStallButton(s)));
-      m.slice(45, 60).forEach(s => mGrid.appendChild(createStallButton(s)));
-      m.slice(30, 45).forEach(s => mGrid.appendChild(createStallButton(s)));
-      m.slice(15, 30).forEach(s => mGrid.appendChild(createStallButton(s)));
-      m.slice(0, 15).forEach(s => mGrid.appendChild(createStallButton(s)));
-      const stage = document.createElement('div'); stage.className = 'badge-panel fw-bold text-center'; stage.textContent = 'MAIN STAGE';
-      stage.style.width = '100%';
-      rightColA.appendChild(mTop); rightColA.appendChild(mGrid); rightColA.appendChild(stage);
+      const rightColA = document.createElement('div');
+      rightColA.className = 'd-flex flex-column gap-3';
+      rightColA.style.width = '100%';
+      rightColA.style.maxWidth = '100%';
+
+      // Add Aquaculture Stalls header
+      const vHeader = document.createElement('div');
+      vHeader.className = 'section-header text-center mb-2';
+      vHeader.textContent = 'AQUACULTURE STALLS';
+      rightColA.appendChild(vHeader);
+
+      // Container for V stalls
+      const vStallsContainer = document.createElement('div');
+      vStallsContainer.className = 'v-stalls-container';
+
+      const vStalls = getByPrefix('V');
+
+      // Create and sort stalls by number
+      const sortedStalls = vStalls.sort((a, b) => {
+        const numA = parseInt(a.id.substring(1));
+        const numB = parseInt(b.id.substring(1));
+        return numA - numB;
+      });
+
+      // Create rows with proper stall numbers as shown in image, bottom to top
+      const rows = [
+        [76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89],     // V76-V89 (top row)
+        [61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75], // V61-V75
+        [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60], // V46-V60
+        [31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45], // V31-V45
+        [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], // V16-V30
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]           // V1-V15 (bottom row)
+      ];
+
+      rows.forEach((numbers, index) => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = numbers.length === 14 ? 'grid-cols-14' : 'grid-cols-15';
+
+        numbers.forEach(num => {
+          const stall = sortedStalls.find(s => parseInt(s.id.substring(1)) === num);
+          if (stall) {
+            rowDiv.appendChild(createStallButton(stall));
+          }
+        });
+
+        vStallsContainer.appendChild(rowDiv);
+      });
+
+      rightColA.appendChild(vStallsContainer);
+
+      // Main stage at the bottom
+      const stage = document.createElement('div');
+      stage.className = 'badge-panel fw-bold text-center mt-2';
+      stage.textContent = 'MAIN STAGE';
+      rightColA.appendChild(stage);
 
       // Removed decorative main entrance and lotus column
       right.appendChild(rightColA);
