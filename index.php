@@ -190,7 +190,7 @@
 
       let orgModalEl, orgModal, confirmModalEl, confirmModal;
 
-      function currency(n){ return '$' + Number(n).toLocaleString(); }
+      function currency(n){ return 'LKR ' + Number(n).toLocaleString(); }
       function generateReference(){ return 'BK-' + Math.random().toString(36).substring(2,9).toUpperCase(); }
 
       function render(){ renderMap(); renderSelection(); }
