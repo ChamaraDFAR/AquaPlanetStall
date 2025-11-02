@@ -242,14 +242,18 @@
       font-size: 0.85rem;
     }
 
-    /* Special grid for U stalls to prevent overlap */
-    .grid-u-stalls {
-      display: grid;
-      grid-template-columns: repeat(10, minmax(3.2rem, 1fr));
-      gap: 0.6rem;
-      width: 100%;
-      max-width: 100%;
-      overflow: hidden;
+    /* Special grid for U stalls */
+    .grid-cols-5 {
+      grid-template-columns: repeat(5, minmax(3rem, 1fr));
+      margin: 0 auto;
+      width: fit-content;
+    }
+
+    /* Center U16-U20 row (now first row) */
+    #food-stalls .grid-cols-5 {
+      max-width: 33%;
+      margin: 0 auto;
+      margin-bottom: 1rem;
     }
 
     /* Section Labels */
@@ -773,7 +777,7 @@
         return container;
       }
 
-      // Sections P-Q-R-S-T
+      // Sections P-Q-R-S-T with new ordering pattern
       ;['P', 'Q', 'R', 'S', 'T'].forEach(section => {
         const wrap = document.createElement('div'); wrap.className = 'd-flex align-items-center gap-3 mb-3';
         const label = document.createElement('div'); label.className = 'section-label'; label.textContent = section;
@@ -783,8 +787,16 @@
         const upper = document.createElement('div'); upper.className = 'grid-cols-7';
         const lower = document.createElement('div'); lower.className = 'grid-cols-7';
         const stalls = getByPrefix(section);
-        stalls.slice(7, 14).forEach(s => upper.appendChild(createStallButton(s)));
-        stalls.slice(0, 7).forEach(s => lower.appendChild(createStallButton(s)));
+
+        // Apply same layout pattern for all sections (first row 8-14, second row 1-7)
+        const sortedStalls = stalls.sort((a, b) => {
+          const numA = parseInt(a.id.substring(1));
+          const numB = parseInt(b.id.substring(1));
+          return numA - numB;
+        });
+        sortedStalls.slice(7, 14).forEach(s => upper.appendChild(createStallButton(s))); // X8-X14
+        sortedStalls.slice(0, 7).forEach(s => lower.appendChild(createStallButton(s))); // X1-X7
+
         col.appendChild(upper); col.appendChild(lower);
         wrap.appendChild(label); wrap.appendChild(col); left.appendChild(wrap);
       });
@@ -792,18 +804,41 @@
       // Food Stalls block (U) - All U stalls shown together
       const foodWrap = document.createElement('div'); foodWrap.className = 'd-flex align-items-start gap-2 mt-3';
       const spacer = document.createElement('div'); spacer.style.width = '2.5rem'; spacer.style.minWidth = '2.5rem';
-      const area = document.createElement('div'); area.className = 'bg-light p-3 rounded border'; area.style.width = '100%';
+      const area = document.createElement('div');
+      area.id = 'food-stalls';
+      area.className = 'bg-light p-3 rounded border';
+      area.style.width = '100%';
       area.style.minWidth = '0';
 
       // Food Stalls header
       const h3 = document.createElement('div'); h3.className = 'section-header text-center mb-3'; h3.textContent = 'Food Stalls';
 
-      // All U stalls in a grid that prevents overlap - 10 columns, 2 rows
-      const uGrid = document.createElement('div'); uGrid.className = 'grid-u-stalls';
-      const uStalls = getByPrefix('U');
-      uStalls.forEach(s => uGrid.appendChild(createStallButton(s)));
+      // All U stalls in two rows - first row U1-U15, second row U16-U20
+      const uGrid = document.createElement('div');
+      uGrid.className = 'd-flex flex-column gap-3';
 
-      area.appendChild(h3); area.appendChild(uGrid);
+      // First row U16-U20
+      const firstRow = document.createElement('div');
+      firstRow.className = 'grid-cols-5';
+      const uStalls = getByPrefix('U');
+
+      // Sort U stalls by number
+      const sortedUStalls = uStalls.sort((a, b) => {
+        const numA = parseInt(a.id.substring(1));
+        const numB = parseInt(b.id.substring(1));
+        return numA - numB;
+      });
+
+      // Add U16-U20 to first row
+      sortedUStalls.slice(15).forEach(s => firstRow.appendChild(createStallButton(s)));
+
+      // Second row U1-U15
+      const secondRow = document.createElement('div');
+      secondRow.className = 'grid-cols-15';
+      sortedUStalls.slice(0, 15).forEach(s => secondRow.appendChild(createStallButton(s)));
+
+      uGrid.appendChild(firstRow);
+      uGrid.appendChild(secondRow); area.appendChild(h3); area.appendChild(uGrid);
       foodWrap.appendChild(spacer); foodWrap.appendChild(area); left.appendChild(foodWrap);
 
       // Right columns (Aquaculture stalls - V)
@@ -894,6 +929,14 @@
       const selected = Object.values(state.stalls).filter(s => s.status === 'selected');
       const payloadStalls = selected.map(s => ({ id: s.id, organization: s.organization, category_id: s.category_id }));
       const total = selected.reduce((sum, s) => sum + Number(s.price || 0), 0);
+
+      // Check stall types
+      const hasVStalls = selected.some(s => s.id.startsWith('V'));
+      const hasPaymentStalls = selected.some(s => {
+        const section = s.id.charAt(0);
+        return section === 'U' || ['P', 'Q', 'R', 'S', 'T'].includes(section);
+      });
+
       // Use default category if not set
       if (!state.confirmCategory) { state.confirmCategory = 'Other'; }
       try {
@@ -902,9 +945,21 @@
         // Update local UI state
         selected.forEach(s => { const tgt = state.stalls[s.id]; if (tgt) { tgt.status = 'booked'; tgt.booking_ref = ref; } });
         render();
-        // Redirect based on category
-        const target = state.confirmCategory === 'Ornamental' ? 'ornamental.php' : 'other.php';
-        window.location.assign(`${target}?ref=${encodeURIComponent(ref)}`);
+
+        // Determine redirect based on stall types
+        let target;
+        if (hasVStalls) {
+          // V section stalls go to government payment page
+          target = 'gov_payment.php?ref=' + encodeURIComponent(ref);
+        } else if (hasPaymentStalls) {
+          // U and P-T sections show payment message
+          target = 'other.php?ref=' + encodeURIComponent(ref) + '&message=payment';
+        } else {
+          // Other stalls (if any) follow original logic
+          target = state.confirmCategory === 'Ornamental' ? 'ornamental.php' : 'other.php';
+          target = `${target}?ref=${encodeURIComponent(ref)}`;
+        }
+        window.location.assign(target);
       } catch (e) {
         // Fallback: still mark as booked locally and redirect with generated ref
         selected.forEach(s => { const tgt = state.stalls[s.id]; if (tgt) { tgt.status = 'booked'; tgt.booking_ref = state.generatedRef; } });
