@@ -16,10 +16,23 @@ function seed_stalls_if_empty(PDO $pdo): void {
     try {
         // Ensure base categories exist
         $pdo->exec("CREATE TABLE IF NOT EXISTS categories (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100) NOT NULL UNIQUE, price INT NOT NULL)");
-        // Upsert categories for restaurants
-        $pdo->prepare('INSERT IGNORE INTO categories (name, price) VALUES ("General Restaurant", 200000), ("Special Restaurant", 400000)')->execute();
+        // Upsert categories for restaurants (1=General, 2=Special), P-T sections (3-9), and V sections (10-13)
+        $pdo->prepare('INSERT IGNORE INTO categories (id, name, price) VALUES 
+            (1, "General Restaurant", 200000), 
+            (2, "Special Restaurant", 400000),
+            (3, "Banking partner", 3500000),
+            (4, "Platinum sponsor", 3200000),
+            (5, "Gold sponsor", 3000000),
+            (6, "Silver sponsor", 2500000),
+            (7, "Bronze sponsor", 2000000),
+            (8, "Co sponsor stalls", 1500000),
+            (9, "General Exhibition stall", 200000),
+            (10, "Ornamental Fish Stall(A)", 500000),
+            (11, "Ornamental Fish Stall(B)", 400000),
+            (12, "Ornamental Fish Stall(C)", 300000),
+            (13, "Ornamental Fish Stall(D)", 200000)')->execute();
         // Fetch category ids
-        $catStmt = $pdo->query('SELECT id, name FROM categories WHERE name IN ("General Restaurant","Special Restaurant")');
+        $catStmt = $pdo->query('SELECT id, name FROM categories WHERE id IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)');
         $nameToId = [];
         foreach ($catStmt->fetchAll() as $row) { $nameToId[$row['name']] = (int)$row['id']; }
 

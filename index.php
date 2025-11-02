@@ -129,19 +129,18 @@
       </div>
     </div>
 
-    <!-- Category Modal for U stalls -->
+    <!-- Category Modal for U and P-T stalls -->
     <div class="modal fade" id="catModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Select Restaurant Category</h5>
+            <h5 class="modal-title" id="cat-modal-title">Select Category</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <p class="mb-3">Choose a category for stall <span class="fw-bold" id="cat-stall-id"></span>.</p>
-            <div class="d-grid gap-2">
-              <button class="btn btn-outline-secondary" data-cat="1">General Restaurant</button>
-              <button class="btn btn-outline-primary" data-cat="2">Special Restaurant</button>
+            <div class="d-grid gap-2" id="cat-modal-buttons">
+              <!-- Categories will be dynamically populated here -->
             </div>
           </div>
         </div>
@@ -164,13 +163,6 @@
                 <button id="btn-copy-ref" class="btn btn-sm btn-outline-secondary">Copy</button>
               </div>
             </div>
-            <div class="mb-3">
-              <div class="fw-semibold mb-2">Select Category</div>
-              <div class="d-flex gap-2">
-                <button id="btn-cat-ornamental" type="button" class="btn btn-outline-primary">Ornamental</button>
-                <button id="btn-cat-other" type="button" class="btn btn-outline-secondary">Other</button>
-              </div>
-            </div>
             <h6 class="fw-semibold">Booking Summary</h6>
             <div id="confirm-list" class="border rounded p-2" style="max-height: 200px; overflow-y:auto"></div>
             <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
@@ -180,7 +172,7 @@
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button id="btn-proceed" class="btn btn-success" disabled>Proceed and Book</button>
+            <button id="btn-proceed" class="btn btn-success">Proceed and Book</button>
           </div>
         </div>
       </div>
@@ -225,16 +217,39 @@
         const id = state.pendingStallId; if (!id) return;
         const s = state.stalls[id]; if (s) { s.status = 'selected'; s.organization = org; }
         orgModal.hide();
-        // If U-section stall, require category selection
-        if (id.startsWith('U')) {
+        // If U-section, P-T section, or V-section stall, require category selection
+        const section = id.charAt(0);
+        if (section === 'U' || ['P','Q','R','S','T'].includes(section) || section === 'V') {
           document.getElementById('cat-stall-id').textContent = id;
-          // Populate buttons from categories (fallback if missing)
-          const c1 = state.categories[1] || { id:1, name:'General Restaurant', price:200000 };
-          const c2 = state.categories[2] || { id:2, name:'Special Restaurant', price:400000 };
-          const b1 = document.querySelector('#catModal button[data-cat="1"]');
-          const b2 = document.querySelector('#catModal button[data-cat="2"]');
-          b1.textContent = `${c1.name} (${currency(c1.price)})`;
-          b2.textContent = `${c2.name} (${currency(c2.price)})`;
+          const buttonsContainer = document.getElementById('cat-modal-buttons');
+          buttonsContainer.innerHTML = '';
+          
+          // Determine which categories to show
+          let categoryIds = [];
+          if (section === 'U') {
+            categoryIds = [1, 2]; // Restaurant categories
+            document.getElementById('cat-modal-title').textContent = 'Select Restaurant Category';
+          } else if (['P','Q','R','S','T'].includes(section)) {
+            categoryIds = [3, 4, 5, 6, 7, 8, 9]; // P-T section categories
+            document.getElementById('cat-modal-title').textContent = 'Select Exhibition Category';
+          } else if (section === 'V') {
+            categoryIds = [10, 11, 12, 13]; // V-section Ornamental Fish Stall categories
+            document.getElementById('cat-modal-title').textContent = 'Select Ornamental Fish Stall Category';
+          }
+          
+          // Populate buttons dynamically from categories loaded from database
+          categoryIds.forEach(catId => {
+            const cat = state.categories[catId];
+            if (cat) {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'btn btn-outline-primary';
+              btn.setAttribute('data-cat', catId);
+              btn.textContent = `${cat.name} (${currency(cat.price)})`;
+              buttonsContainer.appendChild(btn);
+            }
+          });
+          
           catModal.show();
         } else {
           state.pendingStallId = null;
@@ -245,7 +260,11 @@
       function selectCategory(catId){
         const id = state.pendingStallId; if (!id) return;
         const s = state.stalls[id]; if (!s) return;
-        const cat = state.categories[catId] || (catId === 1 ? { id:1, name:'General Restaurant', price:200000 } : { id:2, name:'Special Restaurant', price:400000 });
+        const cat = state.categories[catId];
+        if (!cat) {
+          console.error('Category not found:', catId);
+          return;
+        }
         s.category_id = cat.id; s.category_name = cat.name; s.price = Number(cat.price);
         state.pendingStallId = null; catModal.hide(); render();
       }
@@ -327,15 +346,10 @@
       function openConfirm(){
         const selected = Object.values(state.stalls).filter(s=>s.status==='selected'); if (selected.length === 0) return;
         state.generatedRef = generateReference(); document.getElementById('ref-number').textContent = state.generatedRef;
-        state.confirmCategory = null;
-        // reset category buttons and disable proceed until chosen
-        document.getElementById('btn-proceed').disabled = true;
-        document.getElementById('btn-cat-ornamental').classList.remove('btn-primary');
-        document.getElementById('btn-cat-ornamental').classList.add('btn-outline-primary');
-        document.getElementById('btn-cat-other').classList.remove('btn-secondary');
-        document.getElementById('btn-cat-other').classList.add('btn-outline-secondary');
+        // Set default category to 'Other' (no user selection required)
+        state.confirmCategory = 'Other';
         const list = document.getElementById('confirm-list'); list.innerHTML = '';
-        selected.sort((a,b)=>a.id.localeCompare(b.id)).forEach(s => { const row = document.createElement('div'); row.className = 'd-flex justify-content-between border-bottom py-1 small'; const label = s.category_name ? `, ${s.category_name}` : ''; row.innerHTML = `<span>Stall <strong>${s.id}</strong> (${s.organization}${label})</span><span class=\"fw-bold\">${currency(s.price)}</span>`; list.appendChild(row); });
+        selected.sort((a,b)=>a.id.localeCompare(b.id)).forEach(s => { const row = document.createElement('div'); row.className = 'd-flex justify-content-between border-bottom py-1 small'; const label = s.category_name ? `, ${s.category_name}` : ''; row.innerHTML = `<span>Stall <strong>${s.id}</strong> (${s.organization}${label})</span><span class=\"fw-bold\">${currency(s.price)}</span>`; list.appendChild(row); }); 
         const total = selected.reduce((sum, s) => sum + Number(s.price || 0), 0); document.getElementById('confirm-total').textContent = currency(total);
         confirmModal.show();
       }
@@ -344,7 +358,8 @@
         const selected = Object.values(state.stalls).filter(s=>s.status==='selected');
         const payloadStalls = selected.map(s => ({ id: s.id, organization: s.organization, category_id: s.category_id }));
         const total = selected.reduce((sum, s) => sum + Number(s.price || 0), 0);
-        if (!state.confirmCategory) { return; }
+        // Use default category if not set
+        if (!state.confirmCategory) { state.confirmCategory = 'Other'; }
         try {
           const res = await fetch('./api/book.php', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ stalls: payloadStalls, totalPrice: total, category: state.confirmCategory }) });
           const data = await res.json(); const ref = data && data.reference ? data.reference : state.generatedRef;
@@ -386,7 +401,22 @@
             const cmap = {}; cats.categories.forEach(c => { cmap[c.id] = { id: Number(c.id), name: String(c.name), price: Number(c.price) }; });
             state.categories = cmap;
           } else {
-            state.categories = { 1: {id:1,name:'General Restaurant',price:200000}, 2:{id:2,name:'Special Restaurant',price:400000} };
+            // Fallback categories if API fails
+            state.categories = { 
+              1: {id:1,name:'General Restaurant',price:200000}, 
+              2: {id:2,name:'Special Restaurant',price:400000},
+              3: {id:3,name:'Banking partner',price:3500000},
+              4: {id:4,name:'Platinum sponsor',price:3200000},
+              5: {id:5,name:'Gold sponsor',price:3000000},
+              6: {id:6,name:'Silver sponsor',price:2500000},
+              7: {id:7,name:'Bronze sponsor',price:2000000},
+              8: {id:8,name:'Co sponsor stalls',price:1500000},
+              9: {id:9,name:'General Exhibition stall',price:200000},
+              10: {id:10,name:'Ornamental Fish Stall(A)',price:500000},
+              11: {id:11,name:'Ornamental Fish Stall(B)',price:400000},
+              12: {id:12,name:'Ornamental Fish Stall(C)',price:300000},
+              13: {id:13,name:'Ornamental Fish Stall(D)',price:200000}
+            };
           }
           if (data && Array.isArray(data.stalls) && data.stalls.length > 0){
             const map = {}; data.stalls.forEach(s => { map[s.id] = { id: s.id, status: s.status, price: Number(s.price), organization: s.organization, booking_ref: s.booking_ref, category_id: s.category_id ? Number(s.category_id) : undefined, category_name: s.category_id ? (state.categories[s.category_id]?.name) : undefined }; });
@@ -395,7 +425,22 @@
             buildLocal();
           }
         } catch (_) {
-          state.categories = { 1: {id:1,name:'General Restaurant',price:200000}, 2:{id:2,name:'Special Restaurant',price:400000} };
+          // Fallback categories if API fails
+          state.categories = { 
+            1: {id:1,name:'General Restaurant',price:200000}, 
+            2: {id:2,name:'Special Restaurant',price:400000},
+            3: {id:3,name:'Banking partner',price:3500000},
+            4: {id:4,name:'Platinum sponsor',price:3200000},
+            5: {id:5,name:'Gold sponsor',price:3000000},
+            6: {id:6,name:'Silver sponsor',price:2500000},
+            7: {id:7,name:'Bronze sponsor',price:2000000},
+            8: {id:8,name:'Co sponsor stalls',price:1500000},
+            9: {id:9,name:'General Exhibition stall',price:200000},
+            10: {id:10,name:'Ornamental Fish Stall(A)',price:500000},
+            11: {id:11,name:'Ornamental Fish Stall(B)',price:400000},
+            12: {id:12,name:'Ornamental Fish Stall(C)',price:300000},
+            13: {id:13,name:'Ornamental Fish Stall(D)',price:200000}
+          };
           buildLocal();
         }
         render();
@@ -409,20 +454,6 @@
 
         document.getElementById('btn-confirm').addEventListener('click', openConfirm);
         document.getElementById('btn-proceed').addEventListener('click', proceedBooking);
-        document.getElementById('btn-cat-ornamental').addEventListener('click', () => {
-          state.confirmCategory = 'Ornamental';
-          document.getElementById('btn-proceed').disabled = false;
-          const o = document.getElementById('btn-cat-ornamental'); const t = document.getElementById('btn-cat-other');
-          o.classList.remove('btn-outline-primary'); o.classList.add('btn-primary');
-          t.classList.remove('btn-secondary'); t.classList.add('btn-outline-secondary');
-        });
-        document.getElementById('btn-cat-other').addEventListener('click', () => {
-          state.confirmCategory = 'Other';
-          document.getElementById('btn-proceed').disabled = false;
-          const o = document.getElementById('btn-cat-ornamental'); const t = document.getElementById('btn-cat-other');
-          t.classList.remove('btn-outline-secondary'); t.classList.add('btn-secondary');
-          o.classList.remove('btn-primary'); o.classList.add('btn-outline-primary');
-        });
         document.getElementById('btn-copy-ref').addEventListener('click', () => { const ref = document.getElementById('ref-number').textContent || ''; navigator.clipboard.writeText(ref); });
         orgModalEl.addEventListener('click', (e) => { const target = e.target.closest('button[data-org]'); if (!target) return; const org = target.getAttribute('data-org'); selectOrganization(org); });
 

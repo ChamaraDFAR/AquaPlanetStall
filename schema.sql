@@ -22,10 +22,32 @@ CREATE TABLE IF NOT EXISTS categories (
   price INT NOT NULL
 );
 
+-- Seed restaurant categories for U section stalls
+INSERT IGNORE INTO categories (id, name, price) VALUES
+  (1, 'General Restaurant', 200000),
+  (2, 'Special Restaurant', 400000);
+
+-- Seed categories for P-T section stalls
+INSERT IGNORE INTO categories (id, name, price) VALUES
+  (3, 'Banking partner', 3500000),
+  (4, 'Platinum sponsor', 3200000),
+  (5, 'Gold sponsor', 3000000),
+  (6, 'Silver sponsor', 2500000),
+  (7, 'Bronze sponsor', 2000000),
+  (8, 'Co sponsor stalls', 1500000),
+  (9, 'General Exhibition stall', 200000);
+
+-- Seed categories for V section stalls (Ornamental Fish Stalls)
+INSERT IGNORE INTO categories (id, name, price) VALUES
+  (10, 'Ornamental Fish Stall(A)', 500000),
+  (11, 'Ornamental Fish Stall(B)', 400000),
+  (12, 'Ornamental Fish Stall(C)', 300000),
+  (13, 'Ornamental Fish Stall(D)', 200000);
+
 CREATE TABLE IF NOT EXISTS bookings (
   id INT AUTO_INCREMENT PRIMARY KEY,
   reference VARCHAR(32) NOT NULL UNIQUE,
-  category ENUM('Ornamental','Other') NOT NULL,
+  category ENUM('Ornamental','Other','General Restaurant','Special Restaurant','Banking partner','Platinum sponsor','Gold sponsor','Silver sponsor','Bronze sponsor','Co sponsor stalls','General Exhibition stall','Ornamental Fish Stall(A)','Ornamental Fish Stall(B)','Ornamental Fish Stall(C)','Ornamental Fish Stall(D)') NOT NULL,
   total_price INT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
