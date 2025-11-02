@@ -91,9 +91,21 @@ try {
         if (!isset($stallOrgMap[$id])) {
             throw new RuntimeException('Organization missing for stall ' . $id);
         }
-        // If U-stall, require category_id (1 or 2)
+        // If U-stall, require category_id (1 = General Restaurant or 2 = Special Restaurant)
         if (str_starts_with($id, 'U')) {
             if (!isset($stallCatMap[$id]) || !in_array($stallCatMap[$id], [1,2], true)) {
+                throw new RuntimeException('Category missing/invalid for stall ' . $id . '. Must be General Restaurant (1) or Special Restaurant (2)');
+            }
+        }
+        // If P-T stall, require category_id (3-9)
+        if (in_array(substr($id, 0, 1), ['P','Q','R','S','T'], true)) {
+            if (!isset($stallCatMap[$id]) || !in_array($stallCatMap[$id], [3,4,5,6,7,8,9], true)) {
+                throw new RuntimeException('Category missing/invalid for stall ' . $id);
+            }
+        }
+        // If V-stall, require category_id (10-13)
+        if (str_starts_with($id, 'V')) {
+            if (!isset($stallCatMap[$id]) || !in_array($stallCatMap[$id], [10,11,12,13], true)) {
                 throw new RuntimeException('Category missing/invalid for stall ' . $id);
             }
         }

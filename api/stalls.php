@@ -46,14 +46,14 @@ function seed_stalls_if_empty(PDO $pdo): void {
             }
         }
 
-        // U: General Restaurants U1..U15 (200000) and Special Restaurants U16..U20 (400000)
+        // U: Special Restaurants U1..U15 (400000) and General Restaurants U16..U20 (200000)
         for ($i = 1; $i <= 15; $i++) {
             $id = 'U' . $i;
-            $stmt->execute([':id' => $id, ':status' => 'available', ':price' => 200000, ':category_id' => ($nameToId['General Restaurant'] ?? null)]);
+            $stmt->execute([':id' => $id, ':status' => 'available', ':price' => 400000, ':category_id' => ($nameToId['Special Restaurant'] ?? null)]);
         }
         for ($i = 16; $i <= 20; $i++) {
             $id = 'U' . $i;
-            $stmt->execute([':id' => $id, ':status' => 'available', ':price' => 400000, ':category_id' => ($nameToId['Special Restaurant'] ?? null)]);
+            $stmt->execute([':id' => $id, ':status' => 'available', ':price' => 200000, ':category_id' => ($nameToId['General Restaurant'] ?? null)]);
         }
 
         // V: Aquaculture stalls V1..V89, premium for > 75

@@ -217,8 +217,9 @@
         const id = state.pendingStallId; if (!id) return;
         const s = state.stalls[id]; if (s) { s.status = 'selected'; s.organization = org; }
         orgModal.hide();
-        // If U-section, P-T section, or V-section stall, require category selection
         const section = id.charAt(0);
+        
+        // U-section, P-T section, and V-section all require category selection
         if (section === 'U' || ['P','Q','R','S','T'].includes(section) || section === 'V') {
           document.getElementById('cat-stall-id').textContent = id;
           const buttonsContainer = document.getElementById('cat-modal-buttons');
@@ -227,7 +228,7 @@
           // Determine which categories to show
           let categoryIds = [];
           if (section === 'U') {
-            categoryIds = [1, 2]; // Restaurant categories
+            categoryIds = [1, 2]; // U-section: General Restaurant and Special Restaurant
             document.getElementById('cat-modal-title').textContent = 'Select Restaurant Category';
           } else if (['P','Q','R','S','T'].includes(section)) {
             categoryIds = [3, 4, 5, 6, 7, 8, 9]; // P-T section categories
@@ -302,18 +303,20 @@
           wrap.appendChild(label); wrap.appendChild(col); left.appendChild(wrap);
         });
 
-        // Seafood + Dining block (U)
-        const seafoodWrap = document.createElement('div'); seafoodWrap.className = 'd-flex align-items-center gap-2 mt-2';
+        // Food Stalls block (U) - All U stalls shown together
+        const foodWrap = document.createElement('div'); foodWrap.className = 'd-flex align-items-center gap-2 mt-2';
         const spacer = document.createElement('div'); spacer.style.width = '2rem';
         const area = document.createElement('div'); area.className = 'bg-light p-2 rounded border';
-        const h3s = document.createElement('div'); h3s.className = 'text-center fw-bold'; h3s.textContent = 'SPECIAL RESTAURANTS';
-        const sGrid = document.createElement('div'); sGrid.className = 'grid-cols-5 stretch';
-        getByPrefix('U').filter(s => parseInt(s.id.slice(1),10) >= 16).forEach(s => sGrid.appendChild(createStallButton(s)));
-        const h3d = document.createElement('div'); h3d.className = 'text-center fw-bold mt-2'; h3d.textContent = 'GENERAL RESTAURANTS';
-        const dGrid = document.createElement('div'); dGrid.className = 'grid-cols-15 stretch';
-        getByPrefix('U').filter(s => parseInt(s.id.slice(1),10) <= 15).forEach(s => dGrid.appendChild(createStallButton(s)));
-        area.appendChild(h3s); area.appendChild(sGrid); area.appendChild(h3d); area.appendChild(dGrid);
-        seafoodWrap.appendChild(spacer); seafoodWrap.appendChild(area); left.appendChild(seafoodWrap);
+        
+        // Food Stalls header
+        const h3 = document.createElement('div'); h3.className = 'text-center fw-bold mb-2'; h3.textContent = 'FOOD STALLS';
+        
+        // All U stalls in one grid (U1-U20)
+        const uGrid = document.createElement('div'); uGrid.className = 'grid-cols-15 stretch';
+        getByPrefix('U').forEach(s => uGrid.appendChild(createStallButton(s)));
+        
+        area.appendChild(h3); area.appendChild(uGrid);
+        foodWrap.appendChild(spacer); foodWrap.appendChild(area); left.appendChild(foodWrap);
 
         // Right columns (Aquaculture stalls - V)
         const rightColA = document.createElement('div'); rightColA.className = 'd-flex flex-column align-items-center gap-2 flex-grow-1';
@@ -383,9 +386,9 @@
         const buildLocal = () => {
           const map = {}; const standard=150, premium=250;
           ;['P','Q','R','S','T'].forEach(sec=>{ for(let i=1;i<=14;i++){ map[sec+i]={id:sec+i,status:'available',price:standard}; } });
-          // U: General Restaurants (U1..U15 => 200000), Special Restaurants (U16..U20 => 400000)
-          for(let i=1;i<=15;i++){ map['U'+i]={id:'U'+i,status:'available',price:200000}; }
-          for(let i=16;i<=20;i++){ map['U'+i]={id:'U'+i,status:'available',price:400000}; }
+          // U: Special Restaurants (U1..U15 => 400000), General Restaurants (U16..U20 => 200000)
+          for(let i=1;i<=15;i++){ map['U'+i]={id:'U'+i,status:'available',price:400000}; }
+          for(let i=16;i<=20;i++){ map['U'+i]={id:'U'+i,status:'available',price:200000}; }
           for(let i=1;i<=89;i++){ map['V'+i]={id:'V'+i,status:'available',price: i>75?premium:standard}; }
           state.stalls = map;
         };
@@ -419,7 +422,29 @@
             };
           }
           if (data && Array.isArray(data.stalls) && data.stalls.length > 0){
-            const map = {}; data.stalls.forEach(s => { map[s.id] = { id: s.id, status: s.status, price: Number(s.price), organization: s.organization, booking_ref: s.booking_ref, category_id: s.category_id ? Number(s.category_id) : undefined, category_name: s.category_id ? (state.categories[s.category_id]?.name) : undefined }; });
+            const map = {}; 
+            data.stalls.forEach(s => { 
+              let categoryId = s.category_id ? Number(s.category_id) : undefined;
+              let categoryName = categoryId ? (state.categories[categoryId]?.name) : undefined;
+              let price = Number(s.price);
+              
+              // U-section stalls can have either General Restaurant (1) or Special Restaurant (2)
+              // Category is selected by user, so we don't override it here
+              // If category is set, use its price
+              if (categoryId && state.categories[categoryId]) {
+                price = Number(state.categories[categoryId].price);
+              }
+              
+              map[s.id] = { 
+                id: s.id, 
+                status: s.status, 
+                price: price, 
+                organization: s.organization, 
+                booking_ref: s.booking_ref, 
+                category_id: categoryId, 
+                category_name: categoryName 
+              }; 
+            });
             state.stalls = map;
           } else {
             buildLocal();
