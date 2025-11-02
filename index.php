@@ -940,33 +940,35 @@
       // Use default category if not set
       if (!state.confirmCategory) { state.confirmCategory = 'Other'; }
       try {
-        const res = await fetch('./api/book.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stalls: payloadStalls, totalPrice: total, category: state.confirmCategory }) });
-        const data = await res.json(); const ref = data && data.reference ? data.reference : state.generatedRef;
-        // Update local UI state
-        selected.forEach(s => { const tgt = state.stalls[s.id]; if (tgt) { tgt.status = 'booked'; tgt.booking_ref = ref; } });
-        render();
-
-        // Determine redirect based on stall types
-        let target;
-        if (hasVStalls) {
-          // V section stalls go to government payment page
-          target = 'gov_payment.php?ref=' + encodeURIComponent(ref);
-        } else if (hasPaymentStalls) {
-          // U and P-T sections show payment message
-          target = 'other.php?ref=' + encodeURIComponent(ref) + '&message=payment';
+        const res = await fetch('./api/book.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stalls: payloadStalls, totalPrice: total, category: state.confirmCategory })
+        });
+        const data = await res.json();
+        if (res.ok && data && data.ok && data.reference) {
+          const ref = data.reference;
+          // Update local UI state
+          selected.forEach(s => { const tgt = state.stalls[s.id]; if (tgt) { tgt.status = 'booked'; tgt.booking_ref = ref; } });
+          render();
+          // Determine redirect based on stall types
+          let target;
+          if (hasVStalls) {
+            target = 'gov_payment.php?ref=' + encodeURIComponent(ref);
+          } else if (hasPaymentStalls) {
+            target = 'other.php?ref=' + encodeURIComponent(ref) + '&message=payment';
+          } else {
+            target = state.confirmCategory === 'Ornamental' ? 'ornamental.php' : 'other.php';
+            target = `${target}?ref=${encodeURIComponent(ref)}`;
+          }
+          window.location.assign(target);
         } else {
-          // Other stalls (if any) follow original logic
-          target = state.confirmCategory === 'Ornamental' ? 'ornamental.php' : 'other.php';
-          target = `${target}?ref=${encodeURIComponent(ref)}`;
+          // Show error message if booking failed
+          let errorMsg = (data && data.error) ? data.error : 'Booking failed. Please try again.';
+          alert(errorMsg);
         }
-        window.location.assign(target);
       } catch (e) {
-        // Fallback: still mark as booked locally and redirect with generated ref
-        selected.forEach(s => { const tgt = state.stalls[s.id]; if (tgt) { tgt.status = 'booked'; tgt.booking_ref = state.generatedRef; } });
-        render();
-        const ref = state.generatedRef || '';
-        const target = state.confirmCategory === 'Ornamental' ? 'ornamental.php' : 'other.php';
-        window.location.assign(`${target}?ref=${encodeURIComponent(ref)}`);
+        alert('Booking failed. Please try again.');
       }
     }
 
