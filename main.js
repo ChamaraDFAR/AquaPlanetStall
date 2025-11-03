@@ -9,9 +9,11 @@ const state = {
   generatedRef: null,
   confirmCategory: null,
   categories: {}, // id -> {id,name,price}
+  selectedZone: "", // controls which zone is currently selectable
+  zones: [], // list of zones from API
 };
 
-let orgModalEl, orgModal, confirmModalEl, confirmModal, catModalEl, catModal;
+let orgModalEl, orgModal, confirmModalEl, confirmModal, catModalEl, catModal, zoneModalEl, zoneModal;
 
 function currency(n) {
   return "LKR " + Number(n).toLocaleString();
@@ -31,12 +33,17 @@ function stallClass(stall) {
     return stall.organization === "NAQDA"
       ? "stall-box stall-selected-naqda"
       : "stall-box stall-selected-dfar";
-  return "stall-box stall-available";
+  const disabledByZone = !isStallAllowedByZone(stall.id);
+  return (
+    "stall-box stall-available" + (disabledByZone ? " stall-disabled" : "")
+  );
 }
 
 function handleStallClick(id) {
   const s = state.stalls[id];
   if (!s || s.status === "booked") return;
+  // Block interaction if stall doesn't belong to selected zone
+  if (!isStallAllowedByZone(id)) return;
   if (s.status === "available") {
     state.pendingStallId = id;
     document.getElementById("org-stall-id").textContent = id;
@@ -138,7 +145,7 @@ function createStallButton(stall) {
   const isLarge = stall.id.startsWith("U") || stall.id.startsWith("V");
   btn.className = stallClass(stall) + (isLarge ? " stall-large" : "");
   btn.textContent = stall.id;
-  btn.disabled = stall.status === "booked";
+  btn.disabled = stall.status === "booked" || !isStallAllowedByZone(stall.id);
   btn.addEventListener("click", () => handleStallClick(stall.id));
   return btn;
 }
@@ -359,6 +366,7 @@ async function proceedBooking() {
         stalls: payloadStalls,
         totalPrice: total,
         category: state.confirmCategory,
+        zone: state.selectedZone,
       }),
     });
     const data = await res.json();
@@ -501,11 +509,103 @@ async function loadStalls() {
   render();
 }
 
+// ---------- Zone logic ----------
+// Map of zone -> predicate for allowed stall IDs
+// Zone mapping provided by user
+const zonePredicates = {
+  // V1 - V75
+  aquaculture: (id) => id.startsWith("V") && parseInt(id.substring(1)) <= 75,
+  // U section (all U stalls)
+  seafood: (id) => id.startsWith("U"),
+  // V76 - V89
+  canned: (id) => id.startsWith("V") && parseInt(id.substring(1)) >= 76,
+  // P section
+  fishing: (id) => id.startsWith("P"),
+  // Q8 - Q14
+  ngo: (id) => id.startsWith("Q") && parseInt(id.substring(1)) >= 8,
+  // Q1 - Q7
+  gov: (id) => id.startsWith("Q") && parseInt(id.substring(1)) >= 1 && parseInt(id.substring(1)) <= 7,
+  // R section
+  ornament: (id) => id.startsWith("R"),
+  // S section
+  institutions: (id) => id.startsWith("S"),
+  // T section
+  dry: (id) => id.startsWith("T"),
+};
+
+function isStallAllowedByZone(id) {
+  const z = state.selectedZone;
+  if (!z) return false; // force selecting a zone first
+  const pred = zonePredicates[z];
+  return pred ? !!pred(id) : false;
+}
+
+async function loadZones() {
+  try {
+    const res = await fetch("./api/zones.php");
+    const data = await res.json();
+    if (data && data.ok && Array.isArray(data.zones)) {
+      state.zones = data.zones;
+    }
+  } catch (_) {
+    state.zones = [
+      { id: 1, code: "fishing", name: "Fishing gear / equipments" },
+      { id: 2, code: "ngo", name: "NGO / INGO" },
+      { id: 3, code: "gov", name: "Government agencies / Embassies / Forces" },
+      { id: 4, code: "ornament", name: "Ornament Items" },
+      { id: 5, code: "institutions", name: "Institutions under the fisheries ministry" },
+      { id: 6, code: "dry", name: "Dry fish / Maldivu fish" },
+      { id: 7, code: "seafood", name: "Sea food" },
+      { id: 8, code: "canned", name: "Canned fish" },
+      { id: 9, code: "aquaculture", name: "Aquaculture" },
+    ];
+  }
+
+  // Populate modal buttons
+  const zoneButtons = document.getElementById("zone-buttons");
+  if (zoneButtons) {
+    zoneButtons.innerHTML = "";
+    state.zones.forEach((z) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn btn-outline-secondary";
+      btn.setAttribute("data-zone", z.code);
+      btn.textContent = z.name;
+      zoneButtons.appendChild(btn);
+    });
+  }
+
+  // Populate dropdown if present (ensures consistency)
+  const zoneSelect = document.getElementById("zone-select");
+  if (zoneSelect && zoneSelect.options.length <= 1) {
+    state.zones.forEach((z) => {
+      const opt = document.createElement("option");
+      opt.value = z.code;
+      opt.textContent = z.name;
+      zoneSelect.appendChild(opt);
+    });
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   orgModalEl = document.getElementById("orgModal");
   orgModal = new bootstrap.Modal(orgModalEl);
   confirmModalEl = document.getElementById("confirmModal");
   confirmModal = new bootstrap.Modal(confirmModalEl);
+  zoneModalEl = document.getElementById("zoneModal");
+  if (zoneModalEl) {
+    zoneModal = new bootstrap.Modal(zoneModalEl, { backdrop: 'static', keyboard: false });
+    zoneModalEl.addEventListener('click', (e) => {
+      const target = e.target.closest('button[data-zone]');
+      if (!target) return;
+      const code = target.getAttribute('data-zone');
+      state.selectedZone = code;
+      const zoneSelect = document.getElementById('zone-select');
+      if (zoneSelect) zoneSelect.value = code;
+      render();
+      zoneModal.hide();
+    });
+  }
 
   document.getElementById("btn-confirm").addEventListener("click", openConfirm);
   document
@@ -532,5 +632,17 @@ document.addEventListener("DOMContentLoaded", () => {
     selectCategory(cat);
   });
 
-  loadStalls();
+  // Zone select handler
+  const zoneSelect = document.getElementById("zone-select");
+  if (zoneSelect) {
+    state.selectedZone = zoneSelect.value || "";
+    zoneSelect.addEventListener("change", () => {
+      state.selectedZone = zoneSelect.value || "";
+      render();
+    });
+  }
+
+  Promise.all([loadZones(), loadStalls()]).then(() => {
+    if (zoneModal) zoneModal.show();
+  });
 });

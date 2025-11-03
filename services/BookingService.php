@@ -13,7 +13,7 @@ class BookingService
         $this->pdo = $pdo;
     }
 
-    public function createBooking($stallsInput, $totalPrice, $category)
+    public function createBooking($stallsInput, $totalPrice, $category, $zoneCode = null)
     {
 
         // Normalize input and build BookingItems
@@ -126,7 +126,18 @@ class BookingService
             $insBooking->execute([':ref' => $reference, ':cat' => $bookingCategory, ':total' => $totalPrice]);
             $bookingId = (int) $this->pdo->lastInsertId();
             $insItem = $this->pdo->prepare('INSERT INTO booking_items (booking_id, stall_id, organization, price) VALUES (:bid, :sid, :org, :price)');
-            $updStall = $this->pdo->prepare('UPDATE stalls SET status = "booked", organization = :org, booking_ref = :ref, category_id = :cat WHERE id = :id');
+            $updStall = $this->pdo->prepare('UPDATE stalls SET status = "booked", organization = :org, booking_ref = :ref, category_id = :cat, zone_id = :zone WHERE id = :id');
+
+            // Resolve zone id from provided zone code (if any)
+            $zoneId = null;
+            if (!empty($zoneCode)) {
+                $zstmt = $this->pdo->prepare('SELECT id FROM zones WHERE code = ?');
+                $zstmt->execute([$zoneCode]);
+                $zrow = $zstmt->fetch();
+                if ($zrow && isset($zrow['id'])) {
+                    $zoneId = (int) $zrow['id'];
+                }
+            }
             $catPrice = [];
             $catStmt = $this->pdo->query('SELECT id, price FROM categories WHERE id IN (1,2,3,4,5,6,7,8,9,10,11,12,13)');
             foreach ($catStmt->fetchAll() as $c) {
@@ -151,7 +162,13 @@ class BookingService
                     ':org' => $item->organization,
                     ':price' => $price,
                 ]);
-                $updStall->execute([':org' => $item->organization, ':ref' => $reference, ':id' => $id, ':cat' => ($item->category_id ?? null)]);
+                $updStall->execute([
+                    ':org' => $item->organization,
+                    ':ref' => $reference,
+                    ':id' => $id,
+                    ':cat' => ($item->category_id ?? null),
+                    ':zone' => $zoneId
+                ]);
             }
             if (!$booking->validate()) {
                 throw new \RuntimeException('Booking data invalid');

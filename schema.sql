@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS stalls (
   status ENUM('available','selected','booked') NOT NULL DEFAULT 'available',
   price INT NOT NULL,
   category_id INT NULL,
+  zone_id INT NULL,
   organization ENUM('DFAR','NAQDA') NULL,
   booking_ref VARCHAR(32) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -21,6 +22,29 @@ CREATE TABLE IF NOT EXISTS categories (
   name VARCHAR(100) NOT NULL UNIQUE,
   price INT NOT NULL
 );
+
+-- Zones table to store selectable zones in UI
+CREATE TABLE IF NOT EXISTS zones (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(32) NOT NULL UNIQUE,
+  name VARCHAR(120) NOT NULL
+);
+
+-- Seed zones
+INSERT IGNORE INTO zones (id, code, name) VALUES
+  (1, 'fishing', 'Fishing gear / equipments'),
+  (2, 'ngo', 'NGO / INGO'),
+  (3, 'gov', 'Government agencies / Embassies / Forces'),
+  (4, 'ornament', 'Ornament Items'),
+  (5, 'institutions', 'Institutions under the fisheries ministry'),
+  (6, 'dry', 'Dry fish / Maldivu fish'),
+  (7, 'seafood', 'Sea food'),
+  (8, 'canned', 'Canned fish'),
+  (9, 'aquaculture', 'Aquaculture');
+
+-- Add FK after both tables exist
+ALTER TABLE stalls
+  ADD CONSTRAINT fk_stalls_zone FOREIGN KEY (zone_id) REFERENCES zones(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 -- Seed restaurant categories for U section stalls
 INSERT IGNORE INTO categories (id, name, price) VALUES

@@ -90,6 +90,14 @@ header p {
 	background: #fff;
 	border-color: #cbd5e1;
 }
+.stall-disabled,
+.stall-available.stall-disabled {
+	cursor: not-allowed;
+	opacity: 0.45;
+	filter: grayscale(0.2);
+	background: #fff;
+	border-color: #e5e7eb;
+}
 .stall-available:hover {
 	background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 	border-color: #60a5fa;

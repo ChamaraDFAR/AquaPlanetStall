@@ -12,13 +12,13 @@ class StallsService
 
     public function getAllStalls()
     {
-        $stmt = $this->pdo->query('SELECT id, status, price, category_id, organization, booking_ref FROM stalls ORDER BY id');
+        $stmt = $this->pdo->query('SELECT id, status, price, category_id, zone_id, organization, booking_ref FROM stalls ORDER BY id');
         return $stmt->fetchAll();
     }
 
     public function getStallById($id)
     {
-        $stmt = $this->pdo->prepare('SELECT id, status, price, category_id, organization, booking_ref FROM stalls WHERE id = ?');
+        $stmt = $this->pdo->prepare('SELECT id, status, price, category_id, zone_id, organization, booking_ref FROM stalls WHERE id = ?');
         $stmt->execute([$id]);
         return $stmt->fetch();
     }

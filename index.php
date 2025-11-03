@@ -22,7 +22,7 @@
       <div class="col-12 col-xl">
         <div class="card card-soft">
           <div class="card-body">
-            <div class="d-flex align-items-center gap-3 flex-wrap mb-4 p-3"
+            <div class="d-flex align-items-center justify-content-between flex-wrap mb-4 p-3"
               style="background: rgba(255,255,255,0.6); border-radius: 0.75rem; backdrop-filter: blur(10px);">
               <div class="d-flex align-items-center gap-2 legend-item">
                 <div class="legend-box" style="border-color:#cbd5e1; background:#fff;"></div>
@@ -39,6 +39,21 @@
               <div class="d-flex align-items-center gap-2 legend-item">
                 <div class="legend-box" style="border-color:#9ca3af; background:#e5e7eb;"></div>
                 <span class="small fw-semibold">Booked</span>
+              </div>
+              <div class="ms-auto d-flex align-items-center gap-2 mt-2 mt-md-0">
+                <label for="zone-select" class="small fw-semibold text-muted mb-0">Zone</label>
+                <select id="zone-select" class="form-select form-select-sm" style="min-width: 260px;">
+                  <option value="">-- Select a zone --</option>
+                  <option value="fishing">Fishing gear / equipments</option>
+                  <option value="ngo">NGO / INGO</option>
+                  <option value="gov">Government agencies / Embassies / Forces</option>
+                  <option value="ornament">Ornament Items</option>
+                  <option value="institutions">Institutions under the fisheries ministry</option>
+                  <option value="dry">Dry fish / Maldivu fish</option>
+                  <option value="seafood">Sea food</option>
+                  <option value="canned">Canned fish</option>
+                  <option value="aquaculture">Aquaculture</option>
+                </select>
               </div>
             </div>
 
@@ -150,6 +165,23 @@
         <div class="modal-footer">
           <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
           <button id="btn-proceed" class="btn btn-success">Proceed and Book</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zone Selection Modal -->
+  <div class="modal fade" id="zoneModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Select Zone</h5>
+        </div>
+        <div class="modal-body">
+          <p class="mb-3 text-muted">Please choose a zone to view and book its stalls.</p>
+          <div id="zone-buttons" class="d-grid gap-2">
+            <!-- dynamically filled from API -->
+          </div>
         </div>
       </div>
     </div>

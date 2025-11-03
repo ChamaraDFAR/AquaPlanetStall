@@ -16,9 +16,10 @@ $input = json_decode(file_get_contents('php://input'), true);
 $stallsInput = isset($input['stalls']) && is_array($input['stalls']) ? $input['stalls'] : [];
 $totalPrice = isset($input['totalPrice']) ? (int) $input['totalPrice'] : 0;
 $category = isset($input['category']) ? $input['category'] : null;
+$zoneCode = isset($input['zone']) ? $input['zone'] : null;
 
 $service = new BookingService($pdo);
-$result = $service->createBooking($stallsInput, $totalPrice, $category);
+$result = $service->createBooking($stallsInput, $totalPrice, $category, $zoneCode);
 if (isset($result['ok']) && $result['ok']) {
     echo json_encode(['ok' => true, 'reference' => $result['reference']]);
 } else {
