@@ -23,7 +23,10 @@
               <p class="mb-0">Please make the payment and send the slip to the relevant email address to confirm your
                 booking.</p>
             </div>
-            <a href="index.php" class="btn btn-outline-secondary">Back to Map</a>
+            <div class="d-flex gap-2">
+              <a id="btn-receipt" href="#" class="btn btn-primary">Download / Print Receipt</a>
+              <a href="index.php" class="btn btn-outline-secondary">Back to Map</a>
+            </div>
           </div>
         </div>
       </div>
@@ -34,6 +37,9 @@
     const ref = params.get('ref') || '-';
     const message = params.get('message');
     document.getElementById('ref').textContent = ref;
+    if (ref && ref !== '-') {
+      document.getElementById('btn-receipt').href = 'receipt.php?ref=' + encodeURIComponent(ref);
+    }
 
     // Show payment message if this is a U stall booking
     if (message === 'payment') {

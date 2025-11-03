@@ -575,16 +575,7 @@ async function loadZones() {
     });
   }
 
-  // Populate dropdown if present (ensures consistency)
-  const zoneSelect = document.getElementById("zone-select");
-  if (zoneSelect && zoneSelect.options.length <= 1) {
-    state.zones.forEach((z) => {
-      const opt = document.createElement("option");
-      opt.value = z.code;
-      opt.textContent = z.name;
-      zoneSelect.appendChild(opt);
-    });
-  }
+  // No dropdown – only popup selection
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -600,8 +591,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!target) return;
       const code = target.getAttribute('data-zone');
       state.selectedZone = code;
-      const zoneSelect = document.getElementById('zone-select');
-      if (zoneSelect) zoneSelect.value = code;
       render();
       zoneModal.hide();
     });
@@ -632,15 +621,7 @@ document.addEventListener("DOMContentLoaded", () => {
     selectCategory(cat);
   });
 
-  // Zone select handler
-  const zoneSelect = document.getElementById("zone-select");
-  if (zoneSelect) {
-    state.selectedZone = zoneSelect.value || "";
-    zoneSelect.addEventListener("change", () => {
-      state.selectedZone = zoneSelect.value || "";
-      render();
-    });
-  }
+  // No dropdown handler – zone chosen via modal
 
   Promise.all([loadZones(), loadStalls()]).then(() => {
     if (zoneModal) zoneModal.show();

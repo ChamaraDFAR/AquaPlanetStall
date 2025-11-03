@@ -40,21 +40,7 @@
                 <div class="legend-box" style="border-color:#9ca3af; background:#e5e7eb;"></div>
                 <span class="small fw-semibold">Booked</span>
               </div>
-              <div class="ms-auto d-flex align-items-center gap-2 mt-2 mt-md-0">
-                <label for="zone-select" class="small fw-semibold text-muted mb-0">Zone</label>
-                <select id="zone-select" class="form-select form-select-sm" style="min-width: 260px;">
-                  <option value="">-- Select a zone --</option>
-                  <option value="fishing">Fishing gear / equipments</option>
-                  <option value="ngo">NGO / INGO</option>
-                  <option value="gov">Government agencies / Embassies / Forces</option>
-                  <option value="ornament">Ornament Items</option>
-                  <option value="institutions">Institutions under the fisheries ministry</option>
-                  <option value="dry">Dry fish / Maldivu fish</option>
-                  <option value="seafood">Sea food</option>
-                  <option value="canned">Canned fish</option>
-                  <option value="aquaculture">Aquaculture</option>
-                </select>
-              </div>
+              
             </div>
 
             <div class="road mb-3"></div>

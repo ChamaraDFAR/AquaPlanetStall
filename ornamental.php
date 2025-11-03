@@ -16,7 +16,10 @@
               <h1 class="h4 fw-bold mb-3">Ornamental Category</h1>
               <p class="text-muted">Your booking reference:</p>
               <div class="alert alert-primary"><code id="ref">-</code></div>
-              <a href="index.php" class="btn btn-outline-secondary">Back to Map</a>
+              <div class="d-flex gap-2">
+                <a id="btn-receipt" href="#" class="btn btn-primary">Download / Print Receipt</a>
+                <a href="index.php" class="btn btn-outline-secondary">Back to Map</a>
+              </div>
             </div>
           </div>
         </div>
@@ -26,6 +29,9 @@
       const params = new URLSearchParams(window.location.search);
       const ref = params.get('ref') || '-';
       document.getElementById('ref').textContent = ref;
+      if (ref && ref !== '-') {
+        document.getElementById('btn-receipt').href = 'receipt.php?ref=' + encodeURIComponent(ref);
+      }
     </script>
   </body>
   </html>
