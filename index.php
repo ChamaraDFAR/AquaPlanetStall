@@ -12,6 +12,11 @@
 </head>
 
 <body>
+  <!-- Decorative background elements -->
+  <div class="floating-element"></div>
+  <div class="floating-element"></div>
+  <div class="floating-element"></div>
+  <div class="water-ripple"></div>
   <div class="container py-4">
     <header class="mb-4 text-center">
       <div class="mb-3">

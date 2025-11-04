@@ -10,6 +10,11 @@
 </head>
 
 <body>
+  <!-- Decorative background elements -->
+  <div class="floating-element"></div>
+  <div class="floating-element"></div>
+  <div class="floating-element"></div>
+  <div class="water-ripple"></div>
   <div class="container py-5">
     <div class="row justify-content-center">
       <div class="col-lg-7">
