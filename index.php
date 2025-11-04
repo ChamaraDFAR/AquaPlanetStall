@@ -14,6 +14,10 @@
 <body>
   <div class="container py-4">
     <header class="mb-4 text-center">
+      <div class="mb-3">
+        <img src="assests/logo.png" alt="AQUA PLANET SRI LANKA INTERNATIONAL EXPO 2025" class="expo-logo"
+          style="max-width: 100%; height: auto; max-height: 150px;">
+      </div>
       <h1 class="fw-bold text-dark mb-2">Exhibition Stall Booking</h1>
       <p class="text-muted mb-0">Select your desired stalls from the map below</p>
     </header>

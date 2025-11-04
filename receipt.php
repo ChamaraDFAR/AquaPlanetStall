@@ -44,7 +44,19 @@ if ($ref !== '') {
 
             body {
                 margin: 0;
+                padding: 20px;
             }
+
+            .receipt-logo {
+                max-width: 300px;
+                height: auto;
+            }
+        }
+
+        .receipt-logo {
+            max-width: 250px;
+            height: auto;
+            margin-bottom: 1rem;
         }
     </style>
 </head>
@@ -55,6 +67,10 @@ if ($ref !== '') {
             <div class="col-lg-8">
                 <div class="card shadow-sm">
                     <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <img src="assests/logo.png" alt="AQUA PLANET SRI LANKA INTERNATIONAL EXPO 2025"
+                                class="receipt-logo">
+                        </div>
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
                                 <h1 class="h4 fw-bold mb-1">Booking Receipt</h1>

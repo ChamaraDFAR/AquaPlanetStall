@@ -6,21 +6,85 @@
 }
 
 body {
-	background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+	background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 25%, #0369a1 50%, #075985 75%, #0c4a6e 100%);
+	background-attachment: fixed;
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 	min-height: 100vh;
+	position: relative;
+}
+
+body::before {
+	content: "";
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-image: 
+		radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+		radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+		radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.06) 0%, transparent 50%);
+	background-size: 100% 100%;
+	pointer-events: none;
+	z-index: 0;
+}
+
+body::after {
+	content: "";
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 200px;
+	background: linear-gradient(to top, rgba(14, 165, 233, 0.3) 0%, transparent 100%);
+	background-image: 
+		repeating-linear-gradient(
+			90deg,
+			transparent,
+			transparent 100px,
+			rgba(255, 255, 255, 0.03) 100px,
+			rgba(255, 255, 255, 0.03) 102px
+		);
+	pointer-events: none;
+	z-index: 0;
+}
+
+.container,
+.container-fluid {
+	position: relative;
+	z-index: 1;
 }
 
 /* Header Styling */
+header {
+	position: relative;
+}
+.expo-logo {
+	display: block;
+	margin: 0 auto;
+	max-width: 600px;
+	width: auto;
+	height: auto;
+	object-fit: contain;
+}
+header {
+	position: relative;
+	z-index: 1;
+}
+
 header h1 {
-	color: #1e293b;
+	color: #fff;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 	font-size: 2rem;
 	font-weight: 700;
 	letter-spacing: -0.02em;
 	margin-bottom: 0.5rem;
+	margin-top: 1rem;
 }
+
 header p {
-	color: #64748b;
+	color: rgba(255, 255, 255, 0.9);
+	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 	font-size: 1rem;
 }
 /* Legend Styling */
@@ -249,10 +313,12 @@ header p {
 /* Cards */
 .card-soft {
 	border: 0;
-	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1);
 	border-radius: 1rem;
 	background: #fff;
 	overflow: hidden;
+	position: relative;
+	z-index: 1;
 }
 .card-soft .card-body {
 	padding: 1.5rem;
