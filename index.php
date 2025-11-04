@@ -40,7 +40,7 @@
                 <div class="legend-box" style="border-color:#9ca3af; background:#e5e7eb;"></div>
                 <span class="small fw-semibold">Booked</span>
               </div>
-              
+
             </div>
 
             <div class="road mb-3"></div>
@@ -174,7 +174,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="main.js"></script>
+  <script src="main.js?v=<?php echo time(); ?>"></script>
 </body>
 
 </html>

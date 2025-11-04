@@ -156,17 +156,30 @@ function renderMap() {
   left.innerHTML = "";
   right.innerHTML = "";
 
+  // Zone name mapping
+  const zoneNames = {
+    "P": "ZONE #04 FISHING GEAR/EQUIPMENTS",
+    "Q": "ZONE #05 NGO/INGO & ZONE #06 GOVERNMENT AGENCIES",
+    "R": "ZONE #07 ORNAMENT ITEMS",
+    "S": "ZONE #08 INSTITUTIONS UNDER THE FISHERIES MINISTRY",
+    "T": "ZONE #04 DRY FISH/MALDIVU FISH",
+  };
+
   // Sections P-Q-R-S-T
   ["P", "Q", "R", "S", "T"].forEach((section) => {
-    const wrap = document.createElement("div");
-    wrap.className = "d-flex align-items-center gap-3 mb-3";
-    const label = document.createElement("div");
-    label.className = "section-label";
-    label.textContent = section;
+    const sectionWrapper = document.createElement("div");
+    sectionWrapper.className = "mb-4";
+    
+    // Zone name header
+    const zoneHeader = document.createElement("div");
+    zoneHeader.className = "section-header text-center mb-2";
+    zoneHeader.textContent = zoneNames[section] || section;
+    sectionWrapper.appendChild(zoneHeader);
+    
     const col = document.createElement("div");
     col.className = "d-flex flex-column gap-2";
     col.style.minWidth = "0";
-    col.style.flex = "1";
+    col.style.width = "100%";
     const upper = document.createElement("div");
     upper.className = "grid-cols-7";
     const lower = document.createElement("div");
@@ -183,25 +196,22 @@ function renderMap() {
       .forEach((s) => lower.appendChild(createStallButton(s)));
     col.appendChild(upper);
     col.appendChild(lower);
-    wrap.appendChild(label);
-    wrap.appendChild(col);
-    left.appendChild(wrap);
+    sectionWrapper.appendChild(col);
+    left.appendChild(sectionWrapper);
   });
 
-  // Food Stalls block (U)
-  const foodWrap = document.createElement("div");
-  foodWrap.className = "d-flex align-items-start gap-2 mt-3";
-  const spacer = document.createElement("div");
-  spacer.style.width = "2.5rem";
-  spacer.style.minWidth = "2.5rem";
+  // Sea Food block (U)
+  const foodSection = document.createElement("div");
+  foodSection.className = "mt-4";
+  const h3 = document.createElement("div");
+  h3.className = "section-header text-center mb-3";
+  h3.textContent = "ZONE #03 SEA FOOD";
+  foodSection.appendChild(h3);
   const area = document.createElement("div");
   area.id = "food-stalls";
   area.className = "bg-light p-3 rounded border";
   area.style.width = "100%";
   area.style.minWidth = "0";
-  const h3 = document.createElement("div");
-  h3.className = "section-header text-center mb-3";
-  h3.textContent = "Food Stalls";
   const uGrid = document.createElement("div");
   uGrid.className = "d-flex flex-column gap-3";
   const firstRow = document.createElement("div");
@@ -220,38 +230,61 @@ function renderMap() {
     .forEach((s) => secondRow.appendChild(createStallButton(s)));
   uGrid.appendChild(firstRow);
   uGrid.appendChild(secondRow);
-  area.appendChild(h3);
   area.appendChild(uGrid);
-  foodWrap.appendChild(spacer);
-  foodWrap.appendChild(area);
-  left.appendChild(foodWrap);
+  foodSection.appendChild(area);
+  left.appendChild(foodSection);
 
-  // Right columns (Aquaculture stalls - V)
+  // Right columns (V stalls - Canned Fish and Aquaculture)
   const rightColA = document.createElement("div");
   rightColA.className = "d-flex flex-column gap-3";
   rightColA.style.width = "100%";
   rightColA.style.maxWidth = "100%";
-  const vHeader = document.createElement("div");
-  vHeader.className = "section-header text-center mb-2";
-  vHeader.textContent = "AQUACULTURE STALLS";
-  rightColA.appendChild(vHeader);
-  const vStallsContainer = document.createElement("div");
-  vStallsContainer.className = "v-stalls-container";
+  
+  // ZONE #01 CANNED FISH (V76-V89)
+  const cannedHeader = document.createElement("div");
+  cannedHeader.className = "section-header text-center mb-2";
+  cannedHeader.textContent = "ZONE #01 CANNED FISH";
+  rightColA.appendChild(cannedHeader);
+  
+  const cannedContainer = document.createElement("div");
+  cannedContainer.className = "v-stalls-container";
   const vStalls = getByPrefix("V");
   const sortedStalls = vStalls.sort(
     (a, b) => parseInt(a.id.substring(1)) - parseInt(b.id.substring(1))
   );
-  const rows = [
-    [76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89],
+  
+  // Canned Fish row (V76-V89)
+  const cannedRow = document.createElement("div");
+  cannedRow.className = "grid-cols-14";
+  [76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89].forEach((num) => {
+    const stall = sortedStalls.find(
+      (s) => parseInt(s.id.substring(1)) === num
+    );
+    if (stall) {
+      cannedRow.appendChild(createStallButton(stall));
+    }
+  });
+  cannedContainer.appendChild(cannedRow);
+  rightColA.appendChild(cannedContainer);
+  
+  // ZONE #02 AQUACULTURE (V1-V75)
+  const aquaHeader = document.createElement("div");
+  aquaHeader.className = "section-header text-center mb-2 mt-3";
+  aquaHeader.textContent = "ZONE #02 AQUACULTURE";
+  rightColA.appendChild(aquaHeader);
+  
+  const aquaContainer = document.createElement("div");
+  aquaContainer.className = "v-stalls-container";
+  const aquaRows = [
     [61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75],
     [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60],
     [31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
     [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
   ];
-  rows.forEach((numbers) => {
+  aquaRows.forEach((numbers) => {
     const rowDiv = document.createElement("div");
-    rowDiv.className = numbers.length === 14 ? "grid-cols-14" : "grid-cols-15";
+    rowDiv.className = "grid-cols-15";
     numbers.forEach((num) => {
       const stall = sortedStalls.find(
         (s) => parseInt(s.id.substring(1)) === num
@@ -260,9 +293,9 @@ function renderMap() {
         rowDiv.appendChild(createStallButton(stall));
       }
     });
-    vStallsContainer.appendChild(rowDiv);
+    aquaContainer.appendChild(rowDiv);
   });
-  rightColA.appendChild(vStallsContainer);
+  rightColA.appendChild(aquaContainer);
   const stage = document.createElement("div");
   stage.className = "badge-panel fw-bold text-center mt-2";
   stage.textContent = "MAIN STAGE";
