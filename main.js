@@ -13,7 +13,14 @@ const state = {
   zones: [], // list of zones from API
 };
 
-let orgModalEl, orgModal, confirmModalEl, confirmModal, catModalEl, catModal, zoneModalEl, zoneModal;
+let orgModalEl,
+  orgModal,
+  confirmModalEl,
+  confirmModal,
+  catModalEl,
+  catModal,
+  zoneModalEl,
+  zoneModal;
 
 function currency(n) {
   return "LKR " + Number(n).toLocaleString();
@@ -158,24 +165,24 @@ function renderMap() {
 
   // Zone name mapping
   const zoneNames = {
-    "P": "ZONE #04 FISHING GEAR/EQUIPMENTS",
-    "Q": "ZONE #05 NGO/INGO & ZONE #06 GOVERNMENT AGENCIES",
-    "R": "ZONE #07 ORNAMENT ITEMS",
-    "S": "ZONE #08 INSTITUTIONS UNDER THE FISHERIES MINISTRY",
-    "T": "ZONE #04 DRY FISH/MALDIVU FISH",
+    P: "ZONE #04 FISHING GEAR/EQUIPMENTS",
+    Q: "ZONE #05 NGO/INGO & ZONE #06 GOVERNMENT AGENCIES",
+    R: "ZONE #07 ORNAMENT ITEMS",
+    S: "ZONE #08 INSTITUTIONS UNDER THE FISHERIES MINISTRY",
+    T: "ZONE #04 DRY FISH/MALDIVU FISH",
   };
 
   // Sections P-Q-R-S-T
   ["P", "Q", "R", "S", "T"].forEach((section) => {
     const sectionWrapper = document.createElement("div");
     sectionWrapper.className = "mb-4";
-    
+
     // Zone name header
     const zoneHeader = document.createElement("div");
     zoneHeader.className = "section-header text-center mb-2";
     zoneHeader.textContent = zoneNames[section] || section;
     sectionWrapper.appendChild(zoneHeader);
-    
+
     const col = document.createElement("div");
     col.className = "d-flex flex-column gap-2";
     col.style.minWidth = "0";
@@ -239,40 +246,38 @@ function renderMap() {
   rightColA.className = "d-flex flex-column gap-3";
   rightColA.style.width = "100%";
   rightColA.style.maxWidth = "100%";
-  
+
   // ZONE #01 CANNED FISH (V76-V89)
   const cannedHeader = document.createElement("div");
   cannedHeader.className = "section-header text-center mb-2";
   cannedHeader.textContent = "ZONE #01 CANNED FISH";
   rightColA.appendChild(cannedHeader);
-  
+
   const cannedContainer = document.createElement("div");
   cannedContainer.className = "v-stalls-container";
   const vStalls = getByPrefix("V");
   const sortedStalls = vStalls.sort(
     (a, b) => parseInt(a.id.substring(1)) - parseInt(b.id.substring(1))
   );
-  
+
   // Canned Fish row (V76-V89)
   const cannedRow = document.createElement("div");
   cannedRow.className = "grid-cols-14";
   [76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89].forEach((num) => {
-    const stall = sortedStalls.find(
-      (s) => parseInt(s.id.substring(1)) === num
-    );
+    const stall = sortedStalls.find((s) => parseInt(s.id.substring(1)) === num);
     if (stall) {
       cannedRow.appendChild(createStallButton(stall));
     }
   });
   cannedContainer.appendChild(cannedRow);
   rightColA.appendChild(cannedContainer);
-  
+
   // ZONE #02 AQUACULTURE (V1-V75)
   const aquaHeader = document.createElement("div");
   aquaHeader.className = "section-header text-center mb-2 mt-3";
   aquaHeader.textContent = "ZONE #02 AQUACULTURE";
   rightColA.appendChild(aquaHeader);
-  
+
   const aquaContainer = document.createElement("div");
   aquaContainer.className = "v-stalls-container";
   const aquaRows = [
@@ -374,6 +379,22 @@ function openConfirm() {
 }
 
 async function proceedBooking() {
+  // Get form data
+  const firstName = document.getElementById("firstName").value;
+  const lastName = document.getElementById("lastName").value;
+  const email = document.getElementById("email").value;
+  const phone = document.getElementById("phone").value;
+  const companyName = document.getElementById("companyName").value;
+  const address = document.getElementById("address").value;
+
+  // Validate required fields
+  if (!firstName || !lastName || !email || !phone) {
+    alert(
+      "Please fill in all required fields (First Name, Last Name, Email, and Phone)"
+    );
+    return;
+  }
+
   const selected = Object.values(state.stalls).filter(
     (s) => s.status === "selected"
   );
@@ -400,6 +421,14 @@ async function proceedBooking() {
         totalPrice: total,
         category: state.confirmCategory,
         zone: state.selectedZone,
+        buyer: {
+          firstName,
+          lastName,
+          email,
+          phone,
+          companyName,
+          address,
+        },
       }),
     });
     const data = await res.json();
@@ -557,7 +586,10 @@ const zonePredicates = {
   // Q8 - Q14
   ngo: (id) => id.startsWith("Q") && parseInt(id.substring(1)) >= 8,
   // Q1 - Q7
-  gov: (id) => id.startsWith("Q") && parseInt(id.substring(1)) >= 1 && parseInt(id.substring(1)) <= 7,
+  gov: (id) =>
+    id.startsWith("Q") &&
+    parseInt(id.substring(1)) >= 1 &&
+    parseInt(id.substring(1)) <= 7,
   // R section
   ornament: (id) => id.startsWith("R"),
   // S section
@@ -586,7 +618,11 @@ async function loadZones() {
       { id: 2, code: "ngo", name: "NGO / INGO" },
       { id: 3, code: "gov", name: "Government agencies / Embassies / Forces" },
       { id: 4, code: "ornament", name: "Ornament Items" },
-      { id: 5, code: "institutions", name: "Institutions under the fisheries ministry" },
+      {
+        id: 5,
+        code: "institutions",
+        name: "Institutions under the fisheries ministry",
+      },
       { id: 6, code: "dry", name: "Dry fish / Maldivu fish" },
       { id: 7, code: "seafood", name: "Sea food" },
       { id: 8, code: "canned", name: "Canned fish" },
@@ -618,11 +654,14 @@ document.addEventListener("DOMContentLoaded", () => {
   confirmModal = new bootstrap.Modal(confirmModalEl);
   zoneModalEl = document.getElementById("zoneModal");
   if (zoneModalEl) {
-    zoneModal = new bootstrap.Modal(zoneModalEl, { backdrop: 'static', keyboard: false });
-    zoneModalEl.addEventListener('click', (e) => {
-      const target = e.target.closest('button[data-zone]');
+    zoneModal = new bootstrap.Modal(zoneModalEl, {
+      backdrop: "static",
+      keyboard: false,
+    });
+    zoneModalEl.addEventListener("click", (e) => {
+      const target = e.target.closest("button[data-zone]");
       if (!target) return;
-      const code = target.getAttribute('data-zone');
+      const code = target.getAttribute("data-zone");
       state.selectedZone = code;
       render();
       zoneModal.hide();

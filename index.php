@@ -145,6 +145,35 @@
               <button id="btn-copy-ref" class="btn btn-sm btn-outline-secondary">Copy</button>
             </div>
           </div>
+          <h6 class="fw-semibold mb-3">Buyer Information</h6>
+          <form id="buyerForm" class="mb-4">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="firstName" class="form-label">First Name</label>
+                <input type="text" class="form-control" id="firstName" name="firstName" required>
+              </div>
+              <div class="col-md-6">
+                <label for="lastName" class="form-label">Last Name</label>
+                <input type="text" class="form-control" id="lastName" name="lastName" required>
+              </div>
+              <div class="col-md-6">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+              </div>
+              <div class="col-md-6">
+                <label for="phone" class="form-label">Phone</label>
+                <input type="tel" class="form-control" id="phone" name="phone" required>
+              </div>
+              <div class="col-12">
+                <label for="companyName" class="form-label">Company Name</label>
+                <input type="text" class="form-control" id="companyName" name="companyName">
+              </div>
+              <div class="col-12">
+                <label for="address" class="form-label">Company Address</label>
+                <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+              </div>
+            </div>
+          </form>
           <h6 class="fw-semibold">Booking Summary</h6>
           <div id="confirm-list" class="border rounded p-2" style="max-height: 200px; overflow-y:auto"></div>
           <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">

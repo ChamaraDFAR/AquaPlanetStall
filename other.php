@@ -20,7 +20,7 @@
             <div class="alert alert-success"><code id="ref">-</code></div>
             <div id="payment-message" class="alert alert-info d-none">
               <h5 class="alert-heading">Payment Required</h5>
-              <p class="mb-0">Please make the payment and send the slip to the relevant email address to confirm your
+              <p class="mb-0">Please make the payment and send the slip to aquaplanet@example.com to confirm your
                 booking.</p>
             </div>
             <div class="d-flex gap-2">
@@ -37,6 +37,7 @@
     const ref = params.get('ref') || '-';
     const message = params.get('message');
     document.getElementById('ref').textContent = ref;
+
     if (ref && ref !== '-') {
       document.getElementById('btn-receipt').href = 'receipt.php?ref=' + encodeURIComponent(ref);
     }

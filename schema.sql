@@ -86,5 +86,18 @@ CREATE TABLE IF NOT EXISTS booking_items (
   CONSTRAINT fk_booking_items_stall FOREIGN KEY (stall_id) REFERENCES stalls(id) ON DELETE RESTRICT
 );
 
+CREATE TABLE IF NOT EXISTS booking_buyers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  booking_id INT NOT NULL,
+  first_name VARCHAR(100) NOT NULL,
+  last_name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(50) NOT NULL,
+  company_name VARCHAR(255) NULL,
+  company_address TEXT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_booking_buyers_booking FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE
+);
+
 -- Seed stalls if empty (run via a PHP seeder or manually)
 -- Seeding will be handled in PHP if table is empty.

@@ -25,6 +25,11 @@ if ($ref !== '') {
             $zone['code'] = $zr['code'];
             $zone['name'] = $zr['name'];
         }
+
+        // Get buyer information
+        $buyerStmt = $pdo->prepare('SELECT * FROM booking_buyers WHERE booking_id = ?');
+        $buyerStmt->execute([(int) $booking['id']]);
+        $buyer = $buyerStmt->fetch();
     }
 }
 ?>
@@ -85,12 +90,54 @@ if ($ref !== '') {
                         <?php if (!$booking): ?>
                             <div class="alert alert-danger">Booking not found.</div>
                         <?php else: ?>
-                            <div class="mb-3">
-                                <div><strong>Zone:</strong> <?= htmlspecialchars($zone['name'] ?: '-') ?>
-                                    <?= $zone['code'] ? '(' . htmlspecialchars($zone['code']) . ')' : '' ?>
+                            <?php if (isset($buyer)): ?>
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title fw-bold mb-3">Buyer Information</h6>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <div><strong>First Name:</strong></div>
+                                                <div><?= htmlspecialchars($buyer['first_name']) ?></div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div><strong>Last Name:</strong></div>
+                                                <div><?= htmlspecialchars($buyer['last_name']) ?></div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div><strong>Email:</strong></div>
+                                                <div><?= htmlspecialchars($buyer['email']) ?></div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div><strong>Phone:</strong></div>
+                                                <div><?= htmlspecialchars($buyer['phone']) ?></div>
+                                            </div>
+                                            <?php if (!empty($buyer['company_name'])): ?>
+                                                <div class="col-12">
+                                                    <div><strong>Company Name:</strong></div>
+                                                    <div><?= htmlspecialchars($buyer['company_name']) ?></div>
+                                                </div>
+                                            <?php endif; ?>
+                                            <?php if (!empty($buyer['company_address'])): ?>
+                                                <div class="col-12">
+                                                    <div><strong>Company Address:</strong></div>
+                                                    <div><?= htmlspecialchars($buyer['company_address']) ?></div>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div><strong>Category:</strong> <?= htmlspecialchars($booking['category']) ?></div>
-                                <div><strong>Total Price:</strong> LKR <?= number_format((int) $booking['total_price']) ?>
+                            <?php endif; ?>
+
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title fw-bold mb-3">Booking Details</h6>
+                                    <div><strong>Zone:</strong> <?= htmlspecialchars($zone['name'] ?: '-') ?>
+                                        <?= $zone['code'] ? '(' . htmlspecialchars($zone['code']) . ')' : '' ?>
+                                    </div>
+                                    <div><strong>Category:</strong> <?= htmlspecialchars($booking['category']) ?></div>
+                                    <div><strong>Total Price:</strong> LKR
+                                        <?= number_format((int) $booking['total_price']) ?>
+                                    </div>
                                 </div>
                             </div>
 

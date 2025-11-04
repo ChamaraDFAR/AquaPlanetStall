@@ -13,7 +13,7 @@ class BookingService
         $this->pdo = $pdo;
     }
 
-    public function createBooking($stallsInput, $totalPrice, $category, $zoneCode = null)
+    public function createBooking($stallsInput, $totalPrice, $category, $zoneCode = null, $buyerInfo = null)
     {
 
         // Normalize input and build BookingItems
@@ -173,6 +173,26 @@ class BookingService
             if (!$booking->validate()) {
                 throw new \RuntimeException('Booking data invalid');
             }
+            // Save buyer information if provided
+            if ($buyerInfo) {
+                $insBuyer = $this->pdo->prepare('
+                    INSERT INTO booking_buyers (
+                        booking_id, first_name, last_name, email, phone, company_name, company_address
+                    ) VALUES (
+                        :booking_id, :first_name, :last_name, :email, :phone, :company_name, :company_address
+                    )
+                ');
+                $insBuyer->execute([
+                    ':booking_id' => $bookingId,
+                    ':first_name' => $buyerInfo['firstName'],
+                    ':last_name' => $buyerInfo['lastName'],
+                    ':email' => $buyerInfo['email'],
+                    ':phone' => $buyerInfo['phone'],
+                    ':company_name' => $buyerInfo['companyName'],
+                    ':company_address' => $buyerInfo['address']
+                ]);
+            }
+
             $this->pdo->commit();
             return ['ok' => true, 'reference' => $reference];
         } catch (\Throwable $e) {
