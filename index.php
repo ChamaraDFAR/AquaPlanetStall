@@ -178,6 +178,9 @@
               </div>
             </div>
           </form>
+          <div class="alert alert-warning" role="alert">
+            Payments pending and to be paid to account number (0007040774-Bank of Ceylon) and to be conformed
+          </div>
           <h6 class="fw-semibold">Booking Summary</h6>
           <div id="confirm-list" class="border rounded p-2" style="max-height: 200px; overflow-y:auto"></div>
           <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">

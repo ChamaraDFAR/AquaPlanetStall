@@ -25,8 +25,16 @@
             <div class="alert alert-success"><code id="ref">-</code></div>
             <div id="payment-message" class="alert alert-info d-none">
               <h5 class="alert-heading">Payment Required</h5>
-              <p class="mb-0">Please make the payment and send the slip to aquaplanet@example.com to confirm your
-                booking.</p>
+              <p>Please make a payment to following account; and send the slip to
+                <strong>aquaplanet@fisheriesdept.gov.lk</strong> to confirm your booking.
+              </p>
+              <div class="mt-2">
+                <div class="fw-semibold">Account details:</div>
+                <div>Account number - <strong>0007040774</strong></div>
+                <div>Bank - <strong>Bank of Ceylon / Thaprobane branch</strong></div>
+                <div>Owner of the account - <strong>Secretary, Ministry of Fisheries Aquatic &amp; Ocean
+                    Resources</strong></div>
+              </div>
             </div>
             <div class="d-flex gap-2">
               <a id="btn-receipt" href="#" class="btn btn-primary">Download / Print Receipt</a>

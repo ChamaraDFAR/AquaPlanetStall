@@ -39,7 +39,7 @@ if ($ref !== '') {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Booking Receipt</title>
+    <title>Temporary Reservation Receipt for exhibition stall</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         @media print {
@@ -78,7 +78,7 @@ if ($ref !== '') {
                         </div>
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <h1 class="h4 fw-bold mb-1">Booking Receipt</h1>
+                                <h1 class="h4 fw-bold mb-1">Temporary Reservation Receipt for stall</h1>
                                 <div class="text-muted">Reference: <code><?= htmlspecialchars($ref ?: '-') ?></code>
                                 </div>
                             </div>

@@ -54,6 +54,7 @@ function handleStallClick(id) {
   if (s.status === "available") {
     state.pendingStallId = id;
     document.getElementById("org-stall-id").textContent = id;
+    updateOrgModalForRules(id);
     orgModal.show();
   } else if (s.status === "selected") {
     s.status = "available";
@@ -64,9 +65,52 @@ function handleStallClick(id) {
   }
 }
 
+function isOrganizationAllowedFor(id, org) {
+  const zone = state.selectedZone;
+  const section = id.charAt(0);
+  const isV = section === "V";
+  const vNum = isV ? parseInt(id.substring(1)) : NaN;
+  const isAquaculture = zone === "aquaculture";
+  if (isAquaculture) {
+    // Aquaculture zone: Only NAQDA, and only V1..V75
+    if (org !== "NAQDA") return false;
+    if (!isV || !(vNum >= 1 && vNum <= 75)) return false;
+    return true;
+  }
+  // All other zones: Only DFAR
+  return org === "DFAR";
+}
+
+function updateOrgModalForRules(id) {
+  const dfarBtn = orgModalEl.querySelector('button[data-org="DFAR"]');
+  const naqdaBtn = orgModalEl.querySelector('button[data-org="NAQDA"]');
+  const allowDFAR = isOrganizationAllowedFor(id, "DFAR");
+  const allowNAQDA = isOrganizationAllowedFor(id, "NAQDA");
+  if (dfarBtn) {
+    dfarBtn.disabled = !allowDFAR;
+    dfarBtn.classList.toggle("disabled", !allowDFAR);
+    dfarBtn.style.display = allowDFAR ? "" : "none";
+    dfarBtn.setAttribute("aria-hidden", allowDFAR ? "false" : "true");
+  }
+  if (naqdaBtn) {
+    naqdaBtn.disabled = !allowNAQDA;
+    naqdaBtn.classList.toggle("disabled", !allowNAQDA);
+    naqdaBtn.style.display = allowNAQDA ? "" : "none";
+    naqdaBtn.setAttribute("aria-hidden", allowNAQDA ? "false" : "true");
+  }
+}
+
 function selectOrganization(org) {
   const id = state.pendingStallId;
   if (!id) return;
+  if (!isOrganizationAllowedFor(id, org)) {
+    alert(
+      state.selectedZone === "aquaculture"
+        ? "Only NAQDA can book Aquaculture (V1-V75) stalls."
+        : "Only DFAR can book stalls in this zone."
+    );
+    return;
+  }
   const s = state.stalls[id];
   if (s) {
     s.status = "selected";

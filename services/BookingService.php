@@ -128,14 +128,51 @@ class BookingService
             $insItem = $this->pdo->prepare('INSERT INTO booking_items (booking_id, stall_id, organization, price) VALUES (:bid, :sid, :org, :price)');
             $updStall = $this->pdo->prepare('UPDATE stalls SET status = "booked", organization = :org, booking_ref = :ref, category_id = :cat, zone_id = :zone WHERE id = :id');
 
-            // Resolve zone id from provided zone code (if any)
+            // Resolve zone by provided zone code and enforce org/zone/section rules
+            if (empty($zoneCode)) {
+                throw new \RuntimeException('Zone is required for booking');
+            }
             $zoneId = null;
-            if (!empty($zoneCode)) {
-                $zstmt = $this->pdo->prepare('SELECT id FROM zones WHERE code = ?');
-                $zstmt->execute([$zoneCode]);
-                $zrow = $zstmt->fetch();
-                if ($zrow && isset($zrow['id'])) {
-                    $zoneId = (int) $zrow['id'];
+            $zoneRow = null;
+            $zstmt = $this->pdo->prepare('SELECT id, code, name FROM zones WHERE code = ?');
+            $zstmt->execute([$zoneCode]);
+            $zrow = $zstmt->fetch();
+            if ($zrow && isset($zrow['id'])) {
+                $zoneId = (int) $zrow['id'];
+                $zoneRow = $zrow;
+            } else {
+                throw new \RuntimeException('Invalid zone code');
+            }
+
+            $isAquacultureZone = false;
+            if ($zoneRow) {
+                $zoneName = isset($zoneRow['name']) ? (string) $zoneRow['name'] : '';
+                $zoneCodeVal = isset($zoneRow['code']) ? (string) $zoneRow['code'] : '';
+                $zoneCodeValLower = strtolower(trim($zoneCodeVal));
+                // Consider it Aquaculture if name mentions it or code equals 'aquaculture'
+                $isAquacultureZone = (stripos($zoneName, 'aquaculture') !== false) || ($zoneCodeValLower === 'aquaculture');
+            }
+
+            // Validate each item against org/zone/section constraints
+            foreach ($rows as $row) {
+                $id = $row['id'];
+                $item = $bookingItems[$id];
+                $org = strtoupper(trim((string) $item->organization));
+                $sectionIsV = substr($id, 0, 1) === 'V';
+                if ($isAquacultureZone) {
+                    if ($org !== 'NAQDA') {
+                        throw new \RuntimeException('Only NAQDA can book stalls in Aquaculture zone');
+                    }
+                    if (!$sectionIsV) {
+                        throw new \RuntimeException('Aquaculture zone allows only V-section stalls');
+                    }
+                } else {
+                    if ($org !== 'DFAR') {
+                        throw new \RuntimeException('Only DFAR can book stalls in non-Aquaculture zones');
+                    }
+                    if ($sectionIsV) {
+                        throw new \RuntimeException('V-section (Aquaculture) stalls cannot be booked in this zone');
+                    }
                 }
             }
             $catPrice = [];
