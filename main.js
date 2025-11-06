@@ -429,10 +429,12 @@ function fitMapToViewport() {
   if (!canvas) return;
   // Reset scale first
   canvas.style.transform = "none";
-  const padding = 24; // small breathing room
-  const availableW = Math.max(320, window.innerWidth - padding);
-  const headerH = 260; // approx. header + legend + road
-  const availableH = Math.max(300, window.innerHeight - headerH);
+  const mapArea = document.getElementById("map-area");
+  const padding = 16; // small breathing room
+  const availableW = mapArea ? Math.max(320, mapArea.clientWidth - padding) : Math.max(320, window.innerWidth - padding);
+  // Compute available height based on distance from top of viewport to bottom
+  const areaTop = mapArea ? mapArea.getBoundingClientRect().top : 0;
+  const availableH = Math.max(300, window.innerHeight - areaTop - padding);
   const contentW = canvas.scrollWidth;
   const contentH = canvas.scrollHeight;
   if (!contentW || !contentH) return;
