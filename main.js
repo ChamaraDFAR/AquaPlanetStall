@@ -32,6 +32,7 @@ function generateReference() {
 function render() {
   renderMap();
   renderSelection();
+  fitMapToViewport();
 }
 
 function stallClass(stall) {
@@ -422,6 +423,25 @@ function openConfirm() {
   confirmModal.show();
 }
 
+// ---------- Fit-to-screen scaling ----------
+function fitMapToViewport() {
+  const canvas = document.getElementById("map-canvas");
+  if (!canvas) return;
+  // Reset scale first
+  canvas.style.transform = "none";
+  const padding = 24; // small breathing room
+  const availableW = Math.max(320, window.innerWidth - padding);
+  const headerH = 260; // approx. header + legend + road
+  const availableH = Math.max(300, window.innerHeight - headerH);
+  const contentW = canvas.scrollWidth;
+  const contentH = canvas.scrollHeight;
+  if (!contentW || !contentH) return;
+  const scaleW = availableW / contentW;
+  const scaleH = availableH / contentH;
+  const scale = Math.min(scaleW, scaleH, 1); // don't upscale beyond 1
+  canvas.style.transform = `scale(${scale})`;
+}
+
 async function proceedBooking() {
   // Get form data
   const firstName = document.getElementById("firstName").value;
@@ -741,5 +761,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   Promise.all([loadZones(), loadStalls()]).then(() => {
     if (zoneModal) zoneModal.show();
+    fitMapToViewport();
   });
+  window.addEventListener("resize", fitMapToViewport);
 });

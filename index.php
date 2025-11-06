@@ -17,7 +17,7 @@
   <div class="floating-element"></div>
   <div class="floating-element"></div>
   <div class="water-ripple"></div>
-  <div class="container py-4">
+  <div class="container-fluid py-4">
     <header class="mb-4 text-center">
       <div class="mb-3">
         <img src="assests/logo.png" alt="AQUA PLANET SRI LANKA INTERNATIONAL EXPO 2025" class="expo-logo"
@@ -54,14 +54,28 @@
 
 
             <div class="d-flex flex-column gap-4" id="map-area">
-              <!-- Left side stalls -->
-              <div class="d-flex align-items-start gap-3">
-                <div class="vert-label d-none d-lg-block">FISHERIES AND EXPORT RELATED STALLS</div>
-                <div class="d-flex flex-column gap-3 flex-grow-1" id="left-column"></div>
+              <!-- Top road and entrances to reflect the plan layout -->
+              <div class="mb-3">
+                <div class="road w-100"></div>
               </div>
+              <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="badge-panel">ENTRANCE</div>
+                  <div class="badge-panel">SECURITY</div>
+                </div>
+                <div class="badge-panel">MAIN ENTRANCE</div>
+              </div>
+              <!-- Main map area: left zones and right V area side by side -->
+              <div id="map-canvas" class="d-flex flex-column flex-xl-row align-items-start gap-4">
+                <!-- Left side stalls/sections -->
+                <div class="d-flex align-items-start gap-3 flex-shrink-0" style="min-width: 360px;">
+                  <div class="vert-label d-none d-lg-block">FISHERIES AND EXPORT RELATED STALLS</div>
+                  <div class="d-flex flex-column gap-3" id="left-column" style="width: 360px;"></div>
+                </div>
 
-              <!-- Full width V stalls section -->
-              <div class="w-100" id="right-column"></div>
+                <!-- Right side V-stalls area -->
+                <div class="flex-grow-1 w-100" id="right-column"></div>
+              </div>
             </div>
 
           </div>

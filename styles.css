@@ -566,6 +566,10 @@ header p {
 	max-width: 100%;
 	overflow-x: auto;
 }
+#map-canvas {
+	transform-origin: top left;
+	will-change: transform;
+}
 #left-column,
 #right-column {
 	min-width: 0;
