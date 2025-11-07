@@ -32,7 +32,81 @@ function generateReference() {
 function render() {
   renderMap();
   renderSelection();
-  fitMapToViewport();
+  updateAvailableCount();
+}
+
+function updateAvailableCount() {
+  const totalAvailable = Object.values(state.stalls).filter(
+    (s) => s.status === "available" && isStallAllowedByZone(s.id)
+  ).length;
+  const countEl = document.getElementById("total-available-stalls");
+  if (countEl) {
+    countEl.textContent = `${totalAvailable} Available`;
+  }
+}
+
+function applyFilters() {
+  const searchTerm = document.getElementById("stall-search")?.value.toLowerCase() || "";
+  const filterType = document.querySelector('input[name="filter"]:checked')?.id || "filter-all";
+  
+  const sections = document.querySelectorAll(".stall-section");
+  let visibleSections = 0;
+  
+  sections.forEach((section) => {
+    const stalls = section.querySelectorAll(".stall-box");
+    let visibleStalls = 0;
+    
+    stalls.forEach((stall) => {
+      const stallId = stall.getAttribute("data-stall-id") || "";
+      const stallStatus = stall.getAttribute("data-stall-status") || "";
+      const sectionName = section.getAttribute("data-section") || "";
+      
+      // Search filter
+      const matchesSearch = !searchTerm || 
+        stallId.toLowerCase().includes(searchTerm) ||
+        sectionName.toLowerCase().includes(searchTerm);
+      
+      // Status filter
+      let matchesFilter = true;
+      if (filterType === "filter-available") {
+        matchesFilter = stallStatus === "available" && isStallAllowedByZone(stallId);
+      } else if (filterType === "filter-selected") {
+        matchesFilter = stallStatus === "selected";
+      }
+      
+      if (matchesSearch && matchesFilter) {
+        stall.style.display = "";
+        visibleStalls++;
+      } else {
+        stall.style.display = "none";
+      }
+    });
+    
+    // Show/hide section based on visible stalls
+    if (visibleStalls > 0) {
+      section.style.display = "";
+      visibleSections++;
+    } else {
+      section.style.display = "none";
+    }
+  });
+  
+  // Show message if no results
+  const selectionArea = document.getElementById("stall-selection-area");
+  let noResultsMsg = selectionArea.querySelector(".no-results-message");
+  if (visibleSections === 0 && (searchTerm || filterType !== "filter-all")) {
+    if (!noResultsMsg) {
+      noResultsMsg = document.createElement("div");
+      noResultsMsg.className = "no-results-message text-center py-5";
+      noResultsMsg.innerHTML = `
+        <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">No stalls found matching your criteria</p>
+      `;
+      selectionArea.appendChild(noResultsMsg);
+    }
+  } else if (noResultsMsg) {
+    noResultsMsg.remove();
+  }
 }
 
 function stallClass(stall) {
@@ -62,6 +136,11 @@ function handleStallClick(id) {
     delete s.organization;
     delete s.category_id;
     delete s.category_name;
+    // Update button status attribute
+    const btn = document.querySelector(`[data-stall-id="${id}"]`);
+    if (btn) {
+      btn.setAttribute("data-stall-status", "available");
+    }
     render();
   }
 }
@@ -116,6 +195,11 @@ function selectOrganization(org) {
   if (s) {
     s.status = "selected";
     s.organization = org;
+    // Update button status attribute
+    const btn = document.querySelector(`[data-stall-id="${id}"]`);
+    if (btn) {
+      btn.setAttribute("data-stall-status", "selected");
+    }
   }
   orgModal.hide();
   const section = id.charAt(0);
@@ -198,15 +282,29 @@ function createStallButton(stall) {
   btn.className = stallClass(stall) + (isLarge ? " stall-large" : "");
   btn.textContent = stall.id;
   btn.disabled = stall.status === "booked" || !isStallAllowedByZone(stall.id);
+  btn.setAttribute("data-stall-id", stall.id);
+  btn.setAttribute("data-stall-status", stall.status);
   btn.addEventListener("click", () => handleStallClick(stall.id));
   return btn;
 }
 
+// Zone icons mapping
+const zoneIcons = {
+  P: "bi-tools",
+  Q: "bi-building",
+  R: "bi-gem",
+  S: "bi-bank",
+  T: "bi-fish",
+  U: "bi-cup-hot",
+  VC: "bi-box-seam",
+  VA: "bi-water",
+};
+
 function renderMap() {
-  const left = document.getElementById("left-column");
-  const right = document.getElementById("right-column");
-  left.innerHTML = "";
-  right.innerHTML = "";
+  const selectionArea = document.getElementById("stall-selection-area");
+  if (!selectionArea) return;
+  
+  selectionArea.innerHTML = "";
 
   // Zone name mapping
   const zoneNames = {
@@ -215,142 +313,116 @@ function renderMap() {
     R: "ZONE #07 ORNAMENT ITEMS",
     S: "ZONE #08 INSTITUTIONS UNDER THE FISHERIES MINISTRY",
     T: "ZONE #04 DRY FISH/MALDIVU FISH",
+    U: "ZONE #03 SEA FOOD",
+    VC: "ZONE #01 CANNED FISH",
+    VA: "ZONE #02 AQUACULTURE",
   };
 
-  // Sections P-Q-R-S-T
-  ["P", "Q", "R", "S", "T"].forEach((section) => {
-    const sectionWrapper = document.createElement("div");
-    sectionWrapper.className = "mb-4";
+  // Helper function to create a stall section
+  function createStallSection(sectionCode, sectionName, stalls) {
+    const section = document.createElement("div");
+    section.className = "stall-section";
+    section.setAttribute("data-section", sectionCode);
 
-    // Zone name header
-    const zoneHeader = document.createElement("div");
-    zoneHeader.className = "section-header text-center mb-2";
-    zoneHeader.textContent = zoneNames[section] || section;
-    sectionWrapper.appendChild(zoneHeader);
+    const header = document.createElement("div");
+    header.className = "stall-section-header";
+    header.addEventListener("click", () => {
+      section.classList.toggle("collapsed");
+    });
 
-    const col = document.createElement("div");
-    col.className = "d-flex flex-column gap-2";
-    col.style.minWidth = "0";
-    col.style.width = "100%";
-    const upper = document.createElement("div");
-    upper.className = "grid-cols-7";
-    const lower = document.createElement("div");
-    lower.className = "grid-cols-7";
-    const stalls = getByPrefix(section);
+    const titleDiv = document.createElement("div");
+    titleDiv.className = "section-title";
+    
+    const icon = document.createElement("i");
+    icon.className = `bi ${zoneIcons[sectionCode] || "bi-grid"} section-icon`;
+    titleDiv.appendChild(icon);
+    
+    const titleText = document.createElement("span");
+    titleText.textContent = sectionName;
+    titleDiv.appendChild(titleText);
+    
+    header.appendChild(titleDiv);
+
+    // Count badge
+    const availableCount = stalls.filter(s => s.status === "available" && isStallAllowedByZone(s.id)).length;
+    const selectedCount = stalls.filter(s => s.status === "selected").length;
+    const countBadge = document.createElement("span");
+    countBadge.className = "section-count";
+    countBadge.textContent = `${availableCount} available${selectedCount > 0 ? ` • ${selectedCount} selected` : ""}`;
+    header.appendChild(countBadge);
+
+    // Toggle icon
+    const toggleIcon = document.createElement("i");
+    toggleIcon.className = "bi bi-chevron-down section-toggle";
+    header.appendChild(toggleIcon);
+
+    section.appendChild(header);
+
+    const content = document.createElement("div");
+    content.className = "stall-section-content";
+
+    const grid = document.createElement("div");
+    grid.className = "stall-grid";
+    
     const sortedStalls = stalls.sort(
       (a, b) => parseInt(a.id.substring(1)) - parseInt(b.id.substring(1))
     );
-    sortedStalls
-      .slice(7, 14)
-      .forEach((s) => upper.appendChild(createStallButton(s)));
-    sortedStalls
-      .slice(0, 7)
-      .forEach((s) => lower.appendChild(createStallButton(s)));
-    col.appendChild(upper);
-    col.appendChild(lower);
-    sectionWrapper.appendChild(col);
-    left.appendChild(sectionWrapper);
+    
+    sortedStalls.forEach((s) => {
+      const btn = createStallButton(s);
+      btn.setAttribute("data-stall-id", s.id);
+      btn.setAttribute("data-stall-status", s.status);
+      grid.appendChild(btn);
+    });
+    
+    content.appendChild(grid);
+    section.appendChild(content);
+    return section;
+  }
+
+  // Sections P-Q-R-S-T
+  ["P", "Q", "R", "S", "T"].forEach((section) => {
+    const stalls = getByPrefix(section);
+    if (stalls.length > 0) {
+      const sectionEl = createStallSection(section, zoneNames[section] || section, stalls);
+      selectionArea.appendChild(sectionEl);
+    }
   });
 
   // Sea Food block (U)
-  const foodSection = document.createElement("div");
-  foodSection.className = "mt-4";
-  const h3 = document.createElement("div");
-  h3.className = "section-header text-center mb-3";
-  h3.textContent = "ZONE #03 SEA FOOD";
-  foodSection.appendChild(h3);
-  const area = document.createElement("div");
-  area.id = "food-stalls";
-  area.className = "bg-light p-3 rounded border";
-  area.style.width = "100%";
-  area.style.minWidth = "0";
-  const uGrid = document.createElement("div");
-  uGrid.className = "d-flex flex-column gap-3";
-  const firstRow = document.createElement("div");
-  firstRow.className = "grid-cols-5";
   const uStalls = getByPrefix("U");
-  const sortedUStalls = uStalls.sort(
-    (a, b) => parseInt(a.id.substring(1)) - parseInt(b.id.substring(1))
-  );
-  sortedUStalls
-    .slice(15)
-    .forEach((s) => firstRow.appendChild(createStallButton(s)));
-  const secondRow = document.createElement("div");
-  secondRow.className = "grid-cols-15";
-  sortedUStalls
-    .slice(0, 15)
-    .forEach((s) => secondRow.appendChild(createStallButton(s)));
-  uGrid.appendChild(firstRow);
-  uGrid.appendChild(secondRow);
-  area.appendChild(uGrid);
-  foodSection.appendChild(area);
-  left.appendChild(foodSection);
+  if (uStalls.length > 0) {
+    const sectionEl = createStallSection("U", zoneNames["U"], uStalls);
+    selectionArea.appendChild(sectionEl);
+  }
 
-  // Right columns (V stalls - Canned Fish and Aquaculture)
-  const rightColA = document.createElement("div");
-  rightColA.className = "d-flex flex-column gap-3";
-  rightColA.style.width = "100%";
-  rightColA.style.maxWidth = "100%";
-
-  // ZONE #01 CANNED FISH (V76-V89)
-  const cannedHeader = document.createElement("div");
-  cannedHeader.className = "section-header text-center mb-2";
-  cannedHeader.textContent = "ZONE #01 CANNED FISH";
-  rightColA.appendChild(cannedHeader);
-
-  const cannedContainer = document.createElement("div");
-  cannedContainer.className = "v-stalls-container";
+  // V stalls - Split into Canned Fish and Aquaculture
   const vStalls = getByPrefix("V");
-  const sortedStalls = vStalls.sort(
+  const sortedVStalls = vStalls.sort(
     (a, b) => parseInt(a.id.substring(1)) - parseInt(b.id.substring(1))
   );
 
-  // Canned Fish row (V76-V89)
-  const cannedRow = document.createElement("div");
-  cannedRow.className = "grid-cols-14";
-  [76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89].forEach((num) => {
-    const stall = sortedStalls.find((s) => parseInt(s.id.substring(1)) === num);
-    if (stall) {
-      cannedRow.appendChild(createStallButton(stall));
-    }
-  });
-  cannedContainer.appendChild(cannedRow);
-  rightColA.appendChild(cannedContainer);
+  // Canned Fish (V76-V89)
+  const cannedStalls = sortedVStalls.filter(
+    (s) => parseInt(s.id.substring(1)) >= 76 && parseInt(s.id.substring(1)) <= 89
+  );
+  if (cannedStalls.length > 0) {
+    const sectionEl = createStallSection("VC", zoneNames["VC"], cannedStalls);
+    selectionArea.appendChild(sectionEl);
+  }
 
-  // ZONE #02 AQUACULTURE (V1-V75)
-  const aquaHeader = document.createElement("div");
-  aquaHeader.className = "section-header text-center mb-2 mt-3";
-  aquaHeader.textContent = "ZONE #02 AQUACULTURE";
-  rightColA.appendChild(aquaHeader);
+  // Aquaculture (V1-V75)
+  const aquaStalls = sortedVStalls.filter(
+    (s) => parseInt(s.id.substring(1)) >= 1 && parseInt(s.id.substring(1)) <= 75
+  );
+  if (aquaStalls.length > 0) {
+    const sectionEl = createStallSection("VA", zoneNames["VA"], aquaStalls);
+    selectionArea.appendChild(sectionEl);
+  }
 
-  const aquaContainer = document.createElement("div");
-  aquaContainer.className = "v-stalls-container";
-  const aquaRows = [
-    [61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75],
-    [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60],
-    [31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
-    [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-  ];
-  aquaRows.forEach((numbers) => {
-    const rowDiv = document.createElement("div");
-    rowDiv.className = "grid-cols-15";
-    numbers.forEach((num) => {
-      const stall = sortedStalls.find(
-        (s) => parseInt(s.id.substring(1)) === num
-      );
-      if (stall) {
-        rowDiv.appendChild(createStallButton(stall));
-      }
-    });
-    aquaContainer.appendChild(rowDiv);
-  });
-  rightColA.appendChild(aquaContainer);
-  const stage = document.createElement("div");
-  stage.className = "badge-panel fw-bold text-center mt-2";
-  stage.textContent = "MAIN STAGE";
-  rightColA.appendChild(stage);
-  right.appendChild(rightColA);
+  // Update total available count
+  updateAvailableCount();
+  applyFilters();
 }
 
 function renderSelection() {
@@ -368,6 +440,8 @@ function renderSelection() {
     summary.classList.add("d-none");
     empty.classList.remove("d-none");
     btn.disabled = true;
+    updateAvailableCount();
+    applyFilters();
     return;
   }
   empty.classList.add("d-none");
@@ -395,6 +469,8 @@ function renderSelection() {
   const total = selected.reduce((sum, s) => sum + Number(s.price || 0), 0);
   totalStalls.textContent = String(selected.length);
   totalPrice.textContent = currency(total);
+  updateAvailableCount();
+  applyFilters();
 }
 
 function openConfirm() {
@@ -423,26 +499,6 @@ function openConfirm() {
   confirmModal.show();
 }
 
-// ---------- Fit-to-screen scaling ----------
-function fitMapToViewport() {
-  const canvas = document.getElementById("map-canvas");
-  if (!canvas) return;
-  // Reset scale first
-  canvas.style.transform = "none";
-  const mapArea = document.getElementById("map-area");
-  const padding = 16; // small breathing room
-  const availableW = mapArea ? Math.max(320, mapArea.clientWidth - padding) : Math.max(320, window.innerWidth - padding);
-  // Compute available height based on distance from top of viewport to bottom
-  const areaTop = mapArea ? mapArea.getBoundingClientRect().top : 0;
-  const availableH = Math.max(300, window.innerHeight - areaTop - padding);
-  const contentW = canvas.scrollWidth;
-  const contentH = canvas.scrollHeight;
-  if (!contentW || !contentH) return;
-  const scaleW = availableW / contentW;
-  const scaleH = availableH / contentH;
-  const scale = Math.min(scaleW, scaleH, 1); // don't upscale beyond 1
-  canvas.style.transform = `scale(${scale})`;
-}
 
 async function proceedBooking() {
   // Get form data
@@ -763,7 +819,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
   Promise.all([loadZones(), loadStalls()]).then(() => {
     if (zoneModal) zoneModal.show();
-    fitMapToViewport();
   });
-  window.addEventListener("resize", fitMapToViewport);
+
+  // Search functionality
+  const searchInput = document.getElementById("stall-search");
+  const clearSearchBtn = document.getElementById("clear-search");
+  
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      applyFilters();
+      if (e.target.value) {
+        clearSearchBtn.style.display = "";
+      } else {
+        clearSearchBtn.style.display = "none";
+      }
+    });
+  }
+  
+  if (clearSearchBtn) {
+    clearSearchBtn.addEventListener("click", () => {
+      if (searchInput) {
+        searchInput.value = "";
+        clearSearchBtn.style.display = "none";
+        applyFilters();
+      }
+    });
+  }
+
+  // Filter tabs
+  const filterInputs = document.querySelectorAll('input[name="filter"]');
+  filterInputs.forEach((input) => {
+    input.addEventListener("change", () => {
+      applyFilters();
+    });
+  });
 });

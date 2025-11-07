@@ -8,6 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Exhibition Stall Booking</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -24,14 +25,19 @@
           style="max-width: 100%; height: auto; max-height: 150px;">
       </div>
       <h1 class="fw-bold text-dark mb-2">Exhibition Stall Booking</h1>
-      <p class="text-muted mb-0">Select your desired stalls from the map below</p>
+      <p class="text-muted mb-0">View the map and select your desired stalls</p>
     </header>
 
     <div class="row g-4">
-      <div class="col-12 col-xl">
+      <!-- Map Image Side -->
+      <div class="col-12 col-lg-8">
         <div class="card card-soft">
           <div class="card-body">
-            <div class="d-flex align-items-center justify-content-between flex-wrap mb-4 p-3"
+            <h2 class="h5 fw-bold border-bottom pb-3 mb-3" style="color: #1e293b;">Exhibition Map</h2>
+            <div class="map-image-container">
+              <img src="assests/map.jpeg" alt="Exhibition Map" class="img-fluid map-image" id="map-image">
+            </div>
+            <div class="d-flex align-items-center justify-content-between flex-wrap mt-4 p-3"
               style="background: rgba(255,255,255,0.6); border-radius: 0.75rem; backdrop-filter: blur(10px);">
               <div class="d-flex align-items-center gap-2 legend-item">
                 <div class="legend-box" style="border-color:#cbd5e1; background:#fff;"></div>
@@ -49,60 +55,82 @@
                 <div class="legend-box" style="border-color:#9ca3af; background:#e5e7eb;"></div>
                 <span class="small fw-semibold">Booked</span>
               </div>
-
             </div>
-
-
-            <div class="d-flex flex-column gap-4" id="map-area">
-              <!-- Top road and entrances to reflect the plan layout -->
-              <div class="mb-3">
-                <div class="road w-100"></div>
-              </div>
-              <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                <div class="d-flex align-items-center gap-2">
-                  <div class="badge-panel">ENTRANCE</div>
-                  <div class="badge-panel">SECURITY</div>
-                </div>
-                <div class="badge-panel">MAIN ENTRANCE</div>
-              </div>
-              <!-- Main map area: left zones and right V area side by side -->
-              <div id="map-canvas" class="d-flex flex-column flex-xl-row align-items-start gap-4">
-                <!-- Left side stalls/sections -->
-                <div class="d-flex align-items-start gap-3 flex-shrink-0" style="min-width: 360px;">
-                  <div class="vert-label d-none d-lg-block">FISHERIES AND EXPORT RELATED STALLS</div>
-                  <div class="d-flex flex-column gap-3" id="left-column" style="width: 360px;"></div>
-                </div>
-
-                <!-- Right side V-stalls area -->
-                <div class="flex-grow-1 w-100" id="right-column"></div>
-              </div>
-            </div>
-
           </div>
         </div>
       </div>
 
-      <div class="col-12 col-xl-4">
-        <div class="card card-soft position-sticky" style="top:1rem;">
-          <div class="card-body">
-            <h2 class="h5 fw-bold border-bottom pb-3 mb-3" style="color: #1e293b;">Your Selection</h2>
-            <div id="alert-success" class="alert alert-success d-none" role="alert">
-              <div class="fw-bold">Success!</div>
-              <div>Your stalls have been booked.</div>
+      <!-- Stall Selection and Your Selection Side -->
+      <div class="col-12 col-lg-4">
+        <div class="d-flex flex-column gap-4">
+          <!-- Select Stalls Card -->
+          <div class="card card-soft">
+            <div class="card-body">
+              <div class="d-flex align-items-center justify-content-between mb-4">
+                <h2 class="h5 fw-bold mb-0" style="color: #1e293b;">
+                  <i class="bi bi-grid-3x3-gap me-2"></i>Select Stalls
+                </h2>
+                <span class="badge bg-primary rounded-pill" id="total-available-stalls">0 Available</span>
+              </div>
+              
+              <!-- Search Bar -->
+              <div class="mb-4">
+                <div class="input-group input-group-lg">
+                  <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                  </span>
+                  <input type="text" class="form-control border-start-0 ps-0" id="stall-search" 
+                         placeholder="Search stalls by ID or zone..." autocomplete="off">
+                  <button class="btn btn-outline-secondary border-start-0" type="button" id="clear-search" style="display: none;">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Filter Tabs -->
+              <div class="mb-3">
+                <div class="btn-group w-100" role="group" id="filter-tabs">
+                  <input type="radio" class="btn-check" name="filter" id="filter-all" checked>
+                  <label class="btn btn-outline-primary" for="filter-all">All</label>
+                  
+                  <input type="radio" class="btn-check" name="filter" id="filter-available">
+                  <label class="btn btn-outline-primary" for="filter-available">Available</label>
+                  
+                  <input type="radio" class="btn-check" name="filter" id="filter-selected">
+                  <label class="btn btn-outline-primary" for="filter-selected">Selected</label>
+                </div>
+              </div>
+
+              <div id="stall-selection-area" class="stall-selection-container">
+                <!-- Stalls will be dynamically rendered here -->
+              </div>
             </div>
-            <div id="selection-empty" class="text-muted text-center py-4">Click on an available stall to add it to your
-              booking.</div>
-            <div id="selection-list" class="d-none" style="max-height: 240px; overflow-y: auto;"></div>
-            <div id="selection-summary" class="border-top pt-3 d-none">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="fw-semibold text-muted">Total Stalls:</span>
-                <span class="fw-bold" id="total-stalls">0</span>
+          </div>
+
+          <!-- Your Selection Panel -->
+          <div class="card card-soft position-sticky" style="top:1rem;">
+            <div class="card-body">
+              <h2 class="h5 fw-bold border-bottom pb-3 mb-3" style="color: #1e293b;">
+                <i class="bi bi-check-circle me-2"></i>Your Selection
+              </h2>
+              <div id="alert-success" class="alert alert-success d-none" role="alert">
+                <div class="fw-bold">Success!</div>
+                <div>Your stalls have been booked.</div>
               </div>
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="fw-semibold text-muted">Total Price:</span>
-                <span class="fw-bold text-success" id="total-price">$0</span>
+              <div id="selection-empty" class="text-muted text-center py-4">Click on an available stall to add it to your
+                booking.</div>
+              <div id="selection-list" class="d-none" style="max-height: 240px; overflow-y: auto;"></div>
+              <div id="selection-summary" class="border-top pt-3 d-none">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fw-semibold text-muted">Total Stalls:</span>
+                  <span class="fw-bold" id="total-stalls">0</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <span class="fw-semibold text-muted">Total Price:</span>
+                  <span class="fw-bold text-success" id="total-price">$0</span>
+                </div>
+                <button id="btn-confirm" class="btn btn-success w-100" disabled>Confirm Booking</button>
               </div>
-              <button id="btn-confirm" class="btn btn-success w-100" disabled>Confirm Booking</button>
             </div>
           </div>
         </div>
